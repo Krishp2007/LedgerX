@@ -13,3 +13,5 @@ def product_report(request):
 
 def customer_report(request):
     return HttpResponse("Customer Report")
+def reports_home(request):
+    return HttpResponse("Reports Home")
