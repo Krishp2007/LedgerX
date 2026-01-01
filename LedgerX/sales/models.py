@@ -3,7 +3,6 @@ from accounts.models import Shop
 from customers.models import Customer
 
 from products.models import Product
-from .models import Transaction
 
 class Transaction(models.Model):
     """
@@ -48,7 +47,7 @@ class Transaction(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Date when transaction happened
-    transaction_date = models.DateTimeField()
+    transaction_date = models.DateTimeField(auto_now_add=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

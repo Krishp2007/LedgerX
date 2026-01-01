@@ -8,11 +8,10 @@ class ShopAdmin(admin.ModelAdmin):
         'shop_name',
         'owner_name',
         'user',
-        'is_active',
         'created_at',
     )
 
-    list_filter = ('is_active',)
+    # list_filter = ('is_active',)
     search_fields = ('shop_name', 'owner_name', 'user__username', 'user__email')
 
 
