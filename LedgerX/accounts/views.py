@@ -20,3 +20,9 @@ def reset_password_view(request, token):
 
 def logout_view(request):
     return redirect('login')
+def account_settings(request):
+    return HttpResponse("Account Settings Page")
+def deactivate_shop(request):
+    return HttpResponse("Deactivate Shop Page")
+def delete_shop_permanently(request):
+    return HttpResponse("Delete Shop Permanently Page")
