@@ -14,6 +14,6 @@ urlpatterns = [
 
     # Account / Shop management
     path('account/settings/', views.account_settings, name='account_settings'),
-    path('account/deactivate/', views.deactivate_shop, name='deactivate_shop'),
+    # path('account/deactivate/', views.deactivate_shop, name='deactivate_shop'),
     path('account/delete/', views.delete_shop_permanently, name='delete_shop_permanently'),
 ]
