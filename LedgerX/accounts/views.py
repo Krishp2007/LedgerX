@@ -7,8 +7,17 @@ def root_redirect(request):
     return redirect('login')
 
 def login_view(request):
-    return HttpResponse("Login Page")
-
+    if request.method == "POST": 
+        username = request.POST.get("username") 
+        password = request.POST.get("password") 
+        user = authenticate(request, username=username, password=password) 
+        if user is not None: 
+            login(request, user) 
+            return redirect("home") # redirect to homepage after login 
+        else: # send error message back to template 
+            return render(request, 'Authentications/login.html', {"error": "Invalid credentials"}) 
+    return render(request, 'Authentications/login.html')
+    
 def register_view(request):
     return HttpResponse("Register Page")
 

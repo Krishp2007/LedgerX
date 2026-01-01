@@ -1,0 +1,37 @@
+{% load static %}
+{% load django_bootstrap5 %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% bootstrap_css %} 
+    {% bootstrap_javascript %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/webp" href="{% static 'LoginFavicon.webp' %}">
+    <title>Login</title>
+</head>
+<body style="background-color: #ffffffff;">
+    <h1 class="text-center mt-5"><img src="{% static 'logo.jpeg' %}" alt="LedgerX Logo" style="width: 250px; height: 250px;"></h1>
+    <div class="container d-flex justify-content-center align-items-center"> 
+        <div class="card p-4 shadow" style="width: 300px;"> 
+            <h4 class="text-center mb-3">Login</h4> 
+            <form method="POST"> {% csrf_token %} <!-- Username --> 
+                <div class="mb-3">
+                     <input type="text" name="username" class="form-control" placeholder="Username" required>   
+                </div> 
+                <!-- Password --> 
+                 <br>
+                <div class="mb-3"> 
+                    <input type="password" name="password" class="form-control" placeholder="Password" required> 
+                </div>
+                <br>
+                 <!-- Centered Button --> 
+                <div class="d-flex justify-content-center">
+                     <button type="submit" class="btn btn-primary">Login</button> 
+                </div> 
+            </form> 
+            <a href="{% url 'reset_password'  %}" class="d-block text-center mt-3">Forgot Password?</a>
+        </div> 
+    </div>
+</body>
+</html>

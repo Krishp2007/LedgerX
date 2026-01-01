@@ -1,9 +1,8 @@
 from django.db import models
 from accounts.models import Shop
 from customers.models import Customer
-
 from products.models import Product
-from .models import Transaction
+# from .models import Transaction
 
 class Transaction(models.Model):
     """
