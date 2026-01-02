@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Account Settings</title>
+</head>
+<body>
+
+<h2>Account Settings</h2>
+
+<p>Shop: {{ request.user.shop.shop_name }}</p>
+<p>Owner: {{ request.user.shop.owner_name }}</p>
+
+<p>
+    <a href="{% url 'delete_shop_permanently' %}">
+        Delete Account Permanently
+    </a>
+</p>
+
+</body>
+</html>

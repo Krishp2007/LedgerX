@@ -9,6 +9,7 @@ class ProductAdmin(admin.ModelAdmin):
         'default_price',
         'stock_quantity',
         'is_active',
+        'image',
     )
 
     list_filter = ('shop', 'is_active')

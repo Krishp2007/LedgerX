@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Ledger</title>
+</head>
+<body>
+
+<h2>{{ customer.name }}</h2>
+<p><strong>Mobile:</strong> {{ customer.mobile }}</p>
+
+<h3>Outstanding Balance: ₹{{ outstanding }}</h3>
+
+<p>
+    <a href="{% url 'add_payment_for_customer' customer.id %}">
+        + Add Payment
+    </a>
+</p>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Details</th>
+    </tr>
+
+    {% for tx in transactions %}
+    <tr>
+        <td>{{ tx.transaction_date|date:"d M Y" }}</td>
+        <td>{{ tx.transaction_type }}</td>
+        <td>₹{{ tx.total_amount }}</td>
+        <td>
+            <a href="{% url 'transaction_detail' tx.id %}">View</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="4">No transactions found</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{% url 'customer_list' %}">Back to Customers</a>
+</p>
+
+</body>
+</html>

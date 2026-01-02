@@ -6,7 +6,7 @@ from django.db.models import Sum
 from .models import QRToken
 from sales.models import Transaction
 
-# Create your views here.
+
 def customer_ledger_qr(request, secure_token):
     """
     Public, read-only customer ledger view.
@@ -21,13 +21,13 @@ def customer_ledger_qr(request, secure_token):
         is_active=True
     )
 
-    # 2. Check expiry (if expiry is set)
+    # 2. Check expiry
     if qr.expires_at and qr.expires_at < timezone.now():
         return HttpResponse("This QR code has expired.")
 
     customer = qr.customer
 
-    # 3. Fetch all transactions for this customer
+    # 3. Fetch transactions
     transactions = Transaction.objects.filter(
         customer=customer
     ).order_by('transaction_date')
@@ -43,16 +43,15 @@ def customer_ledger_qr(request, secure_token):
         transaction_type='PAYMENT'
     ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    outstanding = credit_total - payment_total
+    outstanding_amount = credit_total - payment_total
 
-    # 5. Render read-only ledger
+    # 5. Render template
     return render(
         request,
         'qr/customer_ledger.html',
         {
             'customer': customer,
             'transactions': transactions,
-            'outstanding': outstanding
+            'outstanding_amount': outstanding_amount
         }
     )
-

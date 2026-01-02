@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Report</title>
+</head>
+<body>
+
+<h2>Sales Report</h2>
+
+<form method="get">
+    Start Date:
+    <input type="date" name="start_date" value="{{ start_date }}">
+    End Date:
+    <input type="date" name="end_date" value="{{ end_date }}">
+    <button type="submit">Filter</button>
+</form>
+
+<br>
+
+<h3>Total Sales: ₹{{ total_sales }}</h3>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Amount</th>
+    </tr>
+
+    {% for tx in transactions %}
+    <tr>
+        <td>{{ tx.transaction_date|date:"d M Y" }}</td>
+        <td>{{ tx.transaction_type }}</td>
+        <td>₹{{ tx.total_amount }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="3">No sales found</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{% url 'reports_home' %}">Back to Reports</a>
+</p>
+
+</body>
+</html>

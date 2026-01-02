@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Sale</title>
+</head>
+<body>
+
+<h2>Add Sale</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Sale Type</label><br>
+    <select name="transaction_type" required>
+        <option value="CASH">Cash Sale</option>
+        <option value="CREDIT">Credit Sale</option>
+    </select><br><br>
+
+    <label>Customer (only for credit)</label><br>
+    <select name="customer_id">
+        <option value="">-- Select Customer --</option>
+        {% for customer in customers %}
+            <option value="{{ customer.id }}">{{ customer.name }}</option>
+        {% endfor %}
+    </select><br><br>
+
+    <h3>Products</h3>
+
+    {% for product in products %}
+        <p>
+            {{ product.name }} (₹{{ product.default_price }})
+            Qty:
+            <input
+                type="number"
+                name="qty_{{ product.id }}"
+                value="0"
+                min="0"
+            />
+        </p>
+    {% endfor %}
+
+    <button type="submit">Create Sale</button>
+</form>
+
+<p>
+    <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+</p>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Product</title>
+</head>
+<body>
+
+<h2>Edit Product</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <label>Product Name</label><br>
+    <input type="text" name="name" value="{{ product.name }}" required><br><br>
+
+    <label>Category</label><br>
+    <input type="text" name="category" value="{{ product.category }}"><br><br>
+
+    <label>Price</label><br>
+    <input type="number" step="0.01" name="default_price"
+           value="{{ product.default_price }}" required><br><br>
+
+    <label>Stock Quantity</label><br>
+    <input type="number" name="stock_quantity"
+           value="{{ product.stock_quantity }}" required><br><br>
+
+    <label>Change Image</label><br>
+    <input type="file" name="image"><br><br>
+
+    <button type="submit">Update Product</button>
+</form>
+
+<p>
+    <a href="{% url 'product_list' %}">Back to Products</a>
+</p>
+
+</body>
+</html>

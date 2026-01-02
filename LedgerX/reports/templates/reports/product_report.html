@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Report</title>
+</head>
+<body>
+
+<h2>Product Sales Report</h2>
+
+<form method="get">
+    Start Date:
+    <input type="date" name="start_date" value="{{ start_date }}">
+    End Date:
+    <input type="date" name="end_date" value="{{ end_date }}">
+    <button type="submit">Filter</button>
+</form>
+
+<br>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Product</th>
+        <th>Total Quantity Sold</th>
+    </tr>
+
+    {% for row in report %}
+    <tr>
+        <td>{{ row.product__name }}</td>
+        <td>{{ row.total_quantity }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2">No data available</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{% url 'reports_home' %}">Back to Reports</a>
+</p>
+
+</body>
+</html>

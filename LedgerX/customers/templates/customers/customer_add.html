@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Customer</title>
+</head>
+<body>
+
+<h2>Add Credit Customer</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Customer Name</label><br>
+    <input type="text" name="name" required><br><br>
+
+    <label>Mobile Number</label><br>
+    <input type="text" name="mobile" required><br><br>
+
+    <button type="submit">Add Customer</button>
+</form>
+
+<p>
+    <a href="{% url 'customer_list' %}">Back to Customers</a>
+</p>
+
+</body>
+</html>
