@@ -30,7 +30,7 @@ def customer_ledger_qr(request, secure_token):
     # 3. Fetch transactions
     transactions = Transaction.objects.filter(
         customer=customer
-    ).order_by('transaction_date')
+    ).order_by('transaction_date').reverse()
 
     # 4. Calculate outstanding balance
     credit_total = Transaction.objects.filter(

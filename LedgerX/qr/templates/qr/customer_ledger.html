@@ -22,9 +22,15 @@
 
             <h5 class="mt-3">
                 Outstanding Balance:
+                {% if outstanding_amount >= 0 %}
+                <span class="text-success">
+                    ₹{{ outstanding_amount }}
+                </span>
+                {% else %}
                 <span class="text-danger">
                     ₹{{ outstanding_amount }}
                 </span>
+                {% endif %}
             </h5>
         </div>
     </div>
