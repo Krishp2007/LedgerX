@@ -6,52 +6,110 @@ from django.db.models import Sum
 from .models import QRToken
 from sales.models import Transaction
 
+import qrcode
+from io import BytesIO
+from django.urls import reverse
+
+from .models import QRToken
+
+def generate_qr_image(request, customer_id):
+    """
+    Generates QR image for a customer's ledger.
+    Returns PNG image.
+    """
+
+    qr_token = get_object_or_404(
+        QRToken,
+        customer__id=customer_id
+    )
+
+    # Absolute ledger URL
+    ledger_url = request.build_absolute_uri(
+        reverse('customer_ledger_qr', args=[qr_token.secure_token])
+    )
+
+    # Generate QR
+    qr = qrcode.make(ledger_url)
+
+    buffer = BytesIO()
+    qr.save(buffer, format='PNG')
+    buffer.seek(0)
+
+    return HttpResponse(buffer, content_type='image/png')
 
 def customer_ledger_qr(request, secure_token):
-    """
-    Public, read-only customer ledger view.
-    Accessed via QR code.
-    No authentication required.
-    """
-
-    # 1. Validate QR token
     qr = get_object_or_404(
         QRToken,
         secure_token=secure_token,
         is_active=True
     )
 
-    # 2. Check expiry
-    if qr.expires_at and qr.expires_at < timezone.now():
-        return HttpResponse("This QR code has expired.")
-
     customer = qr.customer
 
-    # 3. Fetch transactions
     transactions = Transaction.objects.filter(
         customer=customer
-    ).order_by('transaction_date').reverse()
+    ).order_by('transaction_date')
 
-    # 4. Calculate outstanding balance
-    credit_total = Transaction.objects.filter(
-        customer=customer,
-        transaction_type='CREDIT'
-    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    ledger_rows = []
+    running_balance = 0
 
-    payment_total = Transaction.objects.filter(
-        customer=customer,
-        transaction_type='PAYMENT'
-    ).aggregate(total=Sum('total_amount'))['total'] or 0
+    for tx in transactions:
+        if tx.transaction_type == 'CREDIT':
+            running_balance += tx.total_amount
+        elif tx.transaction_type == 'PAYMENT':
+            running_balance -= tx.total_amount
 
-    outstanding_amount = credit_total - payment_total
+        ledger_rows.insert(0, {
+            'tx': tx,
+            'balance': running_balance,
+            'abs_balance': abs(running_balance),  # ✅ added
+        })
+        
 
-    # 5. Render template
+    outstanding_amount = running_balance
+
+
     return render(
         request,
         'qr/customer_ledger.html',
         {
             'customer': customer,
-            'transactions': transactions,
-            'outstanding_amount': outstanding_amount
+            'ledger_rows': ledger_rows,  # 👈 NEW
+            'outstanding_amount': outstanding_amount,
+            'qr_token': qr,
+        }
+    )
+
+
+
+def qr_transaction_detail(request, secure_token, transaction_id):
+    qr = get_object_or_404(
+        QRToken,
+        secure_token=secure_token,
+        is_active=True
+    )
+
+    transaction = get_object_or_404(
+        Transaction,
+        id=transaction_id,
+        customer=qr.customer
+    )
+
+    items = []
+    for item in transaction.items.all():
+        items.append({
+            'product': item.product,
+            'quantity': item.quantity,
+            'price': item.price_at_sale,
+            'line_total': item.quantity * item.price_at_sale,  # ✅ calculated here
+        })
+
+    return render(
+        request,
+        'qr/transaction_detail.html',
+        {
+            'transaction': transaction,
+            'customer': qr.customer,
+            'items': items,  # 👈 pass pre-calculated data
         }
     )

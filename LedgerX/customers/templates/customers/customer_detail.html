@@ -1,48 +1,96 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Customer Ledger</title>
-</head>
-<body>
 
-<h2>{{ customer.name }}</h2>
-<p><strong>Mobile:</strong> {{ customer.mobile }}</p>
+    <!-- Bootstrap CDN -->
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+  </head>
+  <body class="m-5">
+    <h2>{{ customer.name }}</h2>
+    <p><strong>Mobile:</strong> {{ customer.mobile }}</p>
 
-<h3>Outstanding Balance: ₹{{ outstanding }}</h3>
+    <h3>Outstanding Balance: ₹{{ outstanding }}</h3>
 
-<p>
-    <a href="{% url 'add_payment_for_customer' customer.id %}">
+    <hr />
+
+    <button onclick="toggleQR()" class="btn btn-primary ">
+      📷 Show QR Code
+    </button>
+
+    <div id="qr-box" style="display: none; margin-top: 20px">
+      <img
+        src="{% url 'qr_image' customer.id %}"
+        alt="Customer QR Code"
+        style="width: 250px; border: 1px solid #ccc"
+      />
+
+      <br /><br />
+
+      <a
+        href="{% url 'qr_image' customer.id %}"
+        download="customer_ledger_qr.png"
+        class="btn btn-success"
+      >
+        ⬇ Download PNG
+      </a>
+
+      <button onclick="window.print()" class="btn btn-secondary">
+        🖨 Print
+      </button>
+    </div>
+
+    <hr />
+
+    <p>
+      <a href="{% url 'add_payment_for_customer' customer.id %}">
         + Add Payment
-    </a>
-</p>
+      </a>
+    </p>
 
-<table border="1" cellpadding="8">
-    <tr>
+    <table border="1" cellpadding="8">
+      <tr>
         <th>Date</th>
         <th>Type</th>
         <th>Amount</th>
         <th>Details</th>
-    </tr>
+      </tr>
 
-    {% for tx in transactions %}
-    <tr>
+      {% for tx in transactions %}
+      <tr>
         <td>{{ tx.transaction_date|date:"d M Y" }}</td>
         <td>{{ tx.transaction_type }}</td>
         <td>₹{{ tx.total_amount }}</td>
         <td>
-            <a href="{% url 'transaction_detail' tx.id %}">View</a>
+          <a href="{% url 'transaction_detail' tx.id %}">View</a>
         </td>
-    </tr>
-    {% empty %}
-    <tr>
+      </tr>
+      {% empty %}
+      <tr>
         <td colspan="4">No transactions found</td>
-    </tr>
-    {% endfor %}
-</table>
+      </tr>
+      {% endfor %}
+    </table>
 
-<p>
-    <a href="{% url 'customer_list' %}">Back to Customers</a>
-</p>
+    <p>
+      <a href="{% url 'customer_list' %}">Back to Customers</a>
+    </p>
 
-</body>
+
+    
+    <script>
+      function toggleQR() {
+        const box = document.getElementById("qr-box");
+        if (box.style.display === "none") {
+            box.style.display = 'block'
+        } else {
+            box.style.display = 'none'
+        }
+        
+      }
+    </script>
+  </body>
 </html>

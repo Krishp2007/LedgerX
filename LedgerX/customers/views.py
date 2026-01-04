@@ -2,6 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Sum
 
 from .models import Customer
 from sales.models import Transaction
@@ -67,10 +68,6 @@ def customer_add(request):
 
 @login_required
 def customer_detail(request, customer_id):
-    """
-    Shows ledger (transactions) for a single customer.
-    """
-
     shop = request.user.shop
 
     customer = get_object_or_404(
@@ -79,20 +76,38 @@ def customer_detail(request, customer_id):
         shop=shop
     )
 
-    # Fetch all transactions for this customer
     transactions = Transaction.objects.filter(
         customer=customer
-    ).order_by('transaction_date')
+    ).order_by('-transaction_date')
+
+    # ✅ Calculate outstanding balance
+    credit_total = Transaction.objects.filter(
+        customer=customer,
+        transaction_type='CREDIT'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    payment_total = Transaction.objects.filter(
+        customer=customer,
+        transaction_type='PAYMENT'
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    outstanding = credit_total - payment_total
+
+    # ✅ GET or CREATE QR token
+    qr_token, created = QRToken.objects.get_or_create(
+        customer=customer
+    )
 
     return render(
         request,
         'customers/customer_detail.html',
         {
             'customer': customer,
-            'transactions': transactions
+            'transactions': transactions,
+            'outstanding': outstanding,
+            'qr_token': qr_token,   # 👈 IMPORTANT
         }
     )
-
 
 @login_required
 def customer_edit(request, customer_id):
