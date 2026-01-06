@@ -10,20 +10,29 @@
 <form method="post">
     {% csrf_token %}
 
+    <!-- Sale Type -->
     <label>Sale Type</label><br>
-    <select name="transaction_type" required>
+    <select name="transaction_type" id="saleType" required>
         <option value="CASH">Cash Sale</option>
         <option value="CREDIT">Credit Sale</option>
     </select><br><br>
 
-    <label>Customer (only for credit)</label><br>
-    <select name="customer_id">
-        <option value="">-- Select Customer --</option>
-        {% for customer in customers %}
-            <option value="{{ customer.id }}">{{ customer.name }}</option>
-        {% endfor %}
-    </select><br><br>
+    <!-- CREDIT ONLY -->
+    <div id="creditFields" style="display:none;">
+        <label>Customer</label><br>
+        <select name="customer_id">
+            <option value="">-- Select Customer --</option>
+            {% for customer in customers %}
+                <option value="{{ customer.id }}">{{ customer.name }}</option>
+            {% endfor %}
+        </select><br><br>
 
+        <label>Amount Paid Now</label><br>
+        <input type="number" id="amountPaid" name="amount_paid" min="0" step="0.01">
+        <br><br>
+    </div>
+
+    <!-- Products -->
     <h3>Products</h3>
 
     {% for product in products %}
@@ -31,13 +40,47 @@
             {{ product.name }} (₹{{ product.default_price }})
             Qty:
             <input
-                type="number"
-                name="qty_{{ product.id }}"
-                value="0"
-                min="0"
-            />
+    type="number"
+    class="qty"
+    data-price="{{ product.default_price }}"
+    data-stock="{{ product.stock_quantity }}"
+    name="qty_{{ product.id }}"
+    value="0"
+    min="0"
+/>
+<span class="stockMsg"></span>
+
         </p>
     {% endfor %}
+
+    <hr>
+<h3>Invoice Preview</h3>
+
+<div id="invoicePreview" style="border:1px solid #ccc; padding:15px;">
+    <table width="100%" border="1" cellpadding="6">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Rate</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody id="invoiceBody"></tbody>
+    </table>
+
+    <p><strong>Total:</strong> ₹<span id="invoiceTotal">0.00</span></p>
+    <p id="invoiceBalance"></p>
+</div>
+
+<hr>
+
+
+    <!-- LIVE SUMMARY -->
+    <hr>
+    <h3>Summary</h3>
+    <p>Total Bill: ₹<span id="totalAmount">0.00</span></p>
+    <p id="balanceRow" style="font-weight:bold;"></p>
 
     <button type="submit">Create Sale</button>
 </form>
@@ -46,5 +89,97 @@
     <a href="{% url 'dashboard' %}">Back to Dashboard</a>
 </p>
 
+<!-- JavaScript -->
+<script>
+    const saleType = document.getElementById('saleType');
+    const creditFields = document.getElementById('creditFields');
+    const qtyInputs = document.querySelectorAll('.qty');
+    const totalAmountEl = document.getElementById('totalAmount');
+    const amountPaidInput = document.getElementById('amountPaid');
+    const balanceRow = document.getElementById('balanceRow');
+
+    const submitBtn = document.querySelector('button[type="submit"]');
+
+function validateStock(input) {
+    const qty = parseInt(input.value) || 0;
+    const stock = parseInt(input.dataset.stock);
+    const msg = input.nextElementSibling;
+
+    if (qty > stock) {
+        msg.innerHTML = `❌ Only ${stock} in stock`;
+        msg.style.color = 'red';
+        submitBtn.disabled = true;
+    } else {
+        msg.innerHTML = '';
+        submitBtn.disabled = false;
+    }
+}
+
+qtyInputs.forEach(input => {
+    input.addEventListener('input', () => {
+        validateStock(input);
+        calculateTotal();
+    });
+});
+
+
+    function toggleCreditFields() {
+        creditFields.style.display = saleType.value === 'CREDIT' ? 'block' : 'none';
+        calculateTotal();
+    }
+
+function calculateTotal() {
+    let total = 0;
+    const invoiceBody = document.getElementById('invoiceBody');
+    invoiceBody.innerHTML = '';
+
+    qtyInputs.forEach(input => {
+        const qty = parseFloat(input.value) || 0;
+        const price = parseFloat(input.dataset.price);
+        const name = input.closest('p').innerText.split('(')[0].trim();
+
+        if (qty > 0) {
+            const lineTotal = qty * price;
+            total += lineTotal;
+
+            invoiceBody.innerHTML += `
+                <tr>
+                    <td>${name}</td>
+                    <td>${qty}</td>
+                    <td>₹${price}</td>
+                    <td>₹${lineTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        }
+    });
+
+    document.getElementById('invoiceTotal').innerText = total.toFixed(2);
+    totalAmountEl.innerText = total.toFixed(2);
+
+    if (saleType.value === 'CREDIT') {
+        const paid = parseFloat(amountPaidInput.value) || 0;
+        const balance = total - paid;
+
+        if (balance > 0) {
+            invoiceBalance.innerHTML = `🔴 Due: ₹${balance.toFixed(2)}`;
+        } else if (balance === 0) {
+            invoiceBalance.innerHTML = `🟢 Fully Paid`;
+        } else {
+            invoiceBalance.innerHTML = `🔵 Advance: ₹${Math.abs(balance).toFixed(2)}`;
+        }
+    } else {
+        invoiceBalance.innerHTML = '';
+    }
+}
+
+
+    saleType.addEventListener('change', toggleCreditFields);
+    qtyInputs.forEach(input => input.addEventListener('input', calculateTotal));
+    if (amountPaidInput) amountPaidInput.addEventListener('input', calculateTotal);
+
+    toggleCreditFields();
+</script>
+
 </body>
 </html>
+    

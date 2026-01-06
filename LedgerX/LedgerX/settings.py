@@ -33,9 +33,6 @@ ALLOWED_HOSTS = [
     '10.101.79.100',   # 👈 your IP
 ]
 
-
-
-
 # Application definition
 
 INSTALLED_APPS = [

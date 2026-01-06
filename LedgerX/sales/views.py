@@ -15,115 +15,80 @@ from customers.models import Customer
 # Create your views here.
 @login_required
 def add_sale(request):
-    """
-    Handles BOTH:
-    - CASH sale (no customer)
-    - CREDIT sale (customer required)
-
-    Always creates:
-    - Transaction
-    - TransactionItems
-    Updates:
-    - Product stock
-    """
-
     shop = request.user.shop
-
-    # Active products & customers for this shop
     products = Product.objects.filter(shop=shop, is_active=True)
     customers = Customer.objects.filter(shop=shop, is_active=True)
 
     if request.method == 'POST':
-        print("🔥 POST REQUEST RECEIVED")
-        print("POST DATA:", request.POST)
-
-        transaction_type = request.POST.get('transaction_type')  # CASH / CREDIT
+        transaction_type = request.POST.get('transaction_type')
         customer = None
 
-        # -------------------------------
-        # VALIDATE CREDIT CUSTOMER
-        # -------------------------------
         if transaction_type == Transaction.CREDIT:
             customer_id = request.POST.get('customer_id')
+            customer = get_object_or_404(Customer, id=customer_id, shop=shop)
 
-
-            if not customer_id:
-                messages.error(request, 'Customer is required for credit sale')
-                return redirect('add_sale')
-
-            customer = get_object_or_404(
-                Customer,
-                id=customer_id,
-                shop=shop
-            )
+        amount_paid = request.POST.get('amount_paid')
+        amount_paid = float(amount_paid) if amount_paid else 0
 
         total_amount = 0
         items_to_create = []
 
-        # -------------------------------
-        # ATOMIC TRANSACTION (VERY IMPORTANT)
-        # -------------------------------
-        try:
-            with db_transaction.atomic():
+        with db_transaction.atomic():
 
-                # Create empty transaction first
-                sale = Transaction.objects.create(
+            # 1️⃣ Create SALE (CASH or CREDIT)
+            sale = Transaction.objects.create(
+                shop=shop,
+                customer=customer,
+                transaction_type=transaction_type,
+                total_amount=0,
+                transaction_date=timezone.now()
+            )
+
+            for product in products:
+                qty = int(request.POST.get(f'qty_{product.id}', 0))
+
+                if qty > 0:
+                    if product.stock_quantity < qty:
+                        messages.error(request, f'Not enough stock for {product.name}')
+                        raise Exception("Insufficient stock")
+
+                    product.stock_quantity -= qty
+                    product.save()
+
+                    line_total = qty * product.default_price
+                    total_amount += line_total
+
+                    items_to_create.append(
+                        TransactionItem(
+                            transaction=sale,
+                            product=product,
+                            quantity=qty,
+                            price_at_sale=product.default_price
+                        )
+                    )
+
+            if not items_to_create:
+                messages.error(request, 'No products selected')
+                return redirect('add_sale')
+
+            TransactionItem.objects.bulk_create(items_to_create)
+
+            sale.total_amount = total_amount
+            sale.save()
+
+            # 2️⃣ CREATE PAYMENT IF AMOUNT PAID > 0
+            if amount_paid > 0:
+                Transaction.objects.create(
                     shop=shop,
-                    customer=customer,              # None for cash sale
-                    transaction_type=transaction_type,
-                    total_amount=0,                 # Updated later
+                    customer=customer,
+                    transaction_type=Transaction.PAYMENT,
+                    total_amount=amount_paid,
                     transaction_date=timezone.now()
                 )
 
-                # Loop through all products
-                for product in products:
-                    qty = int(request.POST.get(f'qty_{product.id}', 0))
-
-                    if qty > 0:
-                        # Stock validation
-                        if product.stock_quantity < qty:
-                            raise ValueError(f'Not enough stock for {product.name}')
-
-                        # Reduce stock
-                        product.stock_quantity -= qty
-                        product.save()
-
-                        line_total = qty * product.default_price
-                        total_amount += line_total
-
-                        items_to_create.append(
-                            TransactionItem(
-                                transaction=sale,
-                                product=product,
-                                quantity=qty,
-                                price_at_sale=product.default_price
-                            )
-                        )
-
-                # No product selected case
-                if not items_to_create:
-                    raise ValueError('No products selected')
-
-                # Bulk create items
-                TransactionItem.objects.bulk_create(items_to_create)
-
-                # Update final amount
-                sale.total_amount = total_amount
-                sale.save()
-
-        except ValueError as e:
-            messages.error(request, str(e))
-            return redirect('add_sale')
-
-        # -------------------------------
-        # SUCCESS
-        # -------------------------------
         messages.success(request, 'Sale recorded successfully')
         return redirect('transaction_list')
 
-    # -------------------------------
-    # GET REQUEST
-    # -------------------------------
     return render(
         request,
         'sales/add_sale.html',

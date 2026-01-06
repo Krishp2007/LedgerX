@@ -1,12 +1,19 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from django.shortcuts import render, redirect
 
-def home(request):
-  return render(request, 'index.html')
+def root_view(request):
+    """
+    Smart root:
+    - If logged in → dashboard
+    - Else → home page
+    """
+    if request.user.is_authenticated:
+        return redirect('dashboard')  # Dashboard
+    return render(request, 'public/home.html')
+
 
 def about(request):
-  return HttpResponse("<h1>Welcome to Chai's Django Project: About page</h1>")
+    return render(request, 'public/about.html')
+
 
 def contact(request):
-  return HttpResponse("<h1>Welcome to Chai's Django Project: Contact page</h1>")
-    # return render(request, 'inc.html')
+    return render(request, 'public/contact.html')

@@ -20,16 +20,6 @@ from .models import PasswordResetOTP   # OTP model (shown below)
 
 
 # Create your views here.
-def root_redirect(request):
-    """
-    Root URL handler.
-    - If logged in → dashboard
-    - Else → login page
-    """
-
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    return redirect('login')
 
 
 def login_view(request):

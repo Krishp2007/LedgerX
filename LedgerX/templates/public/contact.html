@@ -1,0 +1,27 @@
+{% extends 'base_public.html' %}
+{% block title %}Contact – LedgerX{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5 animate__animated animate__fadeInUp">
+  <h2 class="text-center fw-bold">Contact Us</h2>
+
+  <form class="mt-4 col-md-6 mx-auto">
+    <div class="mb-3">
+      <label class="form-label">Name</label>
+      <input type="text" class="form-control" placeholder="Your name">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Email</label>
+      <input type="email" class="form-control" placeholder="your@email.com">
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Message</label>
+      <textarea class="form-control" rows="4"></textarea>
+    </div>
+
+    <button class="btn btn-primary w-100">Send Message</button>
+  </form>
+</div>
+{% endblock %}

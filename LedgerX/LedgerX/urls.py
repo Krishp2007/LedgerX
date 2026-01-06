@@ -22,13 +22,21 @@ from . import views
 from django.conf import settings
 from django.conf.urls.static import static
 
+from reports.views import dashboard
+
 urlpatterns = [
+    # Root handling
+    path('', views.root_view, name='root'),
+    path('about/', views.about, name='about'),
+    path('contact/', views.contact, name='contact'),
+    
     path('', include('accounts.urls')),        # root & auth
-    path('', include('reports.urls')),         # dashboard
+
+    path('dashboard/', dashboard, name='dashboard'),         # dashboard
     path('products/', include('products.urls')),
     path('customers/', include('customers.urls')),
     path('sales/', include('sales.urls')),
-    # path('reports/', include('reports.urls')),
+    path('reports/', include('reports.urls')),
     path('qr/', include('qr.urls')),
     path('admin/', admin.site.urls),
     

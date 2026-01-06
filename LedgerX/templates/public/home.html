@@ -1,0 +1,35 @@
+{% extends 'base_public.html' %}
+{% block title %}LedgerX – Smart Business Ledger{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="container text-center animate__animated animate__fadeInUp">
+    <h1 class="display-4 fw-bold">Smart Ledger for Modern Businesses</h1>
+    <p class="lead mt-3">
+      Track sales, manage customers, generate bills & share ledgers via QR.
+    </p>
+
+    <div class="mt-4">
+      <a href="/register/" class="btn btn-light btn-lg me-3">Get Started</a>
+      <a href="/login/" class="btn btn-outline-light btn-lg">Login</a>
+    </div>
+  </div>
+</section>
+
+<section class="container py-5">
+  <div class="row text-center">
+    <div class="col-md-4 animate__animated animate__zoomIn">
+      <h3>📊 Real-time Reports</h3>
+      <p>Daily, weekly & monthly business insights.</p>
+    </div>
+    <div class="col-md-4 animate__animated animate__zoomIn animate__delay-1s">
+      <h3>📱 QR Customer Ledger</h3>
+      <p>Customers can view their ledger securely.</p>
+    </div>
+    <div class="col-md-4 animate__animated animate__zoomIn animate__delay-2s">
+      <h3>🧾 Smart Billing</h3>
+      <p>Auto bill generation with item details.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -25,7 +25,11 @@
            value="{{ product.stock_quantity }}" required><br><br>
 
     <label>Change Image</label><br>
+    {% if product.image %}
+  <img src="{{ product.image.url }}" width="120"><br><br>
+{% endif %}
     <input type="file" name="image"><br><br>
+
 
     <button type="submit">Update Product</button>
 </form>
