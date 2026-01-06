@@ -29,7 +29,7 @@ urlpatterns = [
     path('', views.root_view, name='root'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
-    
+    path('', views.home_view, name='home'),
     path('', include('accounts.urls')),        # root & auth
 
     path('dashboard/', dashboard, name='dashboard'),         # dashboard

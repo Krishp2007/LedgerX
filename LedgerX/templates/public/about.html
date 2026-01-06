@@ -1,30 +1,109 @@
 {% extends 'base_public.html' %}
-{% block title %}About – LedgerX{% endblock %}
+
+{% block title %}About Us | LedgerX{% endblock %}
 
 {% block content %}
-<div class="container mt-5 pt-5 animate__animated animate__fadeIn">
-  <h2 class="fw-bold text-center">About LedgerX</h2>
-  <p class="lead text-center mt-3">
-    LedgerX is a smart digital ledger system built for small & medium businesses.
-  </p>
+<div class="container py-5">
+    <div class="text-center mb-5 animate__animated animate__fadeIn">
+        <h2 class="fw-bold display-4">About <span class="gradient-text">LedgerX</span></h2>
+        <p class="lead text-muted mx-auto" style="max-width: 700px;">
+            A next-generation digital ledger system providing small businesses with absolute transparency and automated bookkeeping.
+        </p>
+    </div>
 
-  <div class="row mt-4">
-    <div class="col-md-6">
-      <h4>Why LedgerX?</h4>
-      <ul>
-        <li>No manual books</li>
-        <li>Accurate outstanding balances</li>
-        <li>Customer transparency</li>
-        <li>Secure QR-based access</li>
-      </ul>
+    <div class="row g-5 align-items-center mb-5 pb-5">
+        <div class="col-md-6 animate__animated animate__fadeInLeft">
+            <div class="p-5 bg-light rounded-5 text-center shadow-sm">
+                <h1 class="display-1 fw-bold gradient-text mb-0">LX</h1>
+                <p class="fw-bold text-uppercase tracking-widest small mt-2">Digital Pioneer</p>
+            </div>
+        </div>
+        <div class="col-md-6 animate__animated animate__fadeInRight">
+            <h3 class="fw-bold mb-4">Our Mission</h3>
+            <div class="d-flex mb-4">
+                <div class="me-3 fs-3 text-emerald">✅</div>
+                <div>
+                    <h5 class="fw-bold">100% Transparency</h5>
+                    <p class="text-muted small">Live QR-based ledger access ensures customers and owners stay perfectly in sync.</p>
+                </div>
+            </div>
+            <div class="d-flex mb-4">
+                <div class="me-3 fs-3 text-emerald">✅</div>
+                <div>
+                    <h5 class="fw-bold">Effortless Automation</h5>
+                    <p class="text-muted small">From instant bill generation to stock tracking, we handle the complexity for you.</p>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-      <h4>Technology</h4>
-      <p>
-        Built using Django, Bootstrap, and modern web standards.
-        Designed for scalability and security.
-      </p>
+
+    <div id="contact" class="py-5 border-top animate__animated animate__fadeInUp">
+        <div class="text-center mb-5">
+            <h3 class="fw-bold">Contact <span class="gradient-text">Us</span></h3>
+            <p class="text-muted small">Have questions or need support? We are here to help your business grow.</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card border-0 shadow-sm p-4 p-md-5">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">YOUR NAME</label>
+                                <input type="text" name="name" class="form-control bg-light border-0 shadow-none" placeholder="Enter your name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold small text-muted">EMAIL ADDRESS</label>
+                                <input type="email" name="email" class="form-control bg-light border-0 shadow-none" placeholder="name@example.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">MESSAGE</label>
+                            <textarea name="message" rows="4" class="form-control bg-light border-0 shadow-none" placeholder="How can we assist your shop?" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="row text-center mt-5 g-4">
+                    <div class="col-6 col-md-4">
+                        <div class="fw-bold text-charcoal small">📍 Location</div>
+                        <p class="text-muted x-small">Surat, Gujarat</p>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <div class="fw-bold text-charcoal small">📧 Email</div>
+                        <p class="text-muted x-small">support@ledgerx.com</p>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <div class="fw-bold text-charcoal small">📞 Phone</div>
+                        <p class="text-muted x-small">+91 98765 43210</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
+
+<style>
+    /* Emerald & Charcoal Theme Helpers */
+    .text-emerald { color: var(--primary-emerald); }
+    .text-charcoal { color: var(--charcoal-900); }
+    .x-small { font-size: 0.8rem; }
+    
+    .gradient-text {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Form control focus styles */
+    .form-control:focus {
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.1) !important;
+        border: 1px solid var(--primary-emerald) !important;
+    }
+</style>
 {% endblock %}

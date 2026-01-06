@@ -1,0 +1,91 @@
+{% extends 'base_public.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -100px;">
+        <div class="col-md-5 col-lg-4">
+            
+            <div class="text-center mb-4 animate__animated animate__fadeInDown">
+                <div class="d-inline-block p-3 rounded-circle bg-white shadow-sm mb-3">
+                    <h2 class="fw-bold mb-0">
+                        Ledger<span style="color: #10b981;">X</span>
+                    </h2>
+                </div>
+                <h1 class="fw-bold h3 mb-2">Welcome Back</h1>
+                <p class="text-muted small">Sign in to your shop dashboard</p>
+            </div>
+
+            <div class="card border-0 shadow-2xl glass-card p-4 p-md-5 animate__animated animate__fadeInUp">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">USERNAME</label>
+                        <input type="text" name="username" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="Your shop username" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                            <a href="{% url 'forgot_password' %}" class="small text-decoration-none fw-bold text-indigo">Forgot?</a>
+                        </div>
+                        <input type="password" name="password" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="••••••••" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-lg mb-3 text-white">
+                        Continue to Dashboard
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <span class="text-muted small">New to LedgerX?</span>
+                    <a href="{% url 'register' %}" class="fw-bold small text-decoration-none ms-1 text-indigo">Create account</a>
+                </div>
+            </div>
+            
+            <div class="text-center mt-5 animate__animated animate__fadeIn animate__delay-1s">
+                <p class="text-muted small">🔒 Secure, encrypted, and built for growth.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Clean Indigo variables to replace purple */
+    :root {
+        --primary-indigo: #4f46e5;
+        --indigo-glow: rgba(79, 70, 229, 0.1);
+        --slate-900: #0f172a;
+    }
+
+    .text-indigo { color: var(--primary-indigo); }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Efficiency: Glassmorphism effect */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.8) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .form-control {
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    /* Soft focus state instead of harsh borders */
+    .form-control:focus {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px var(--indigo-glow) !important;
+    }
+
+    .shadow-2xl {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08) !important;
+    }
+</style>
+{% endblock %}

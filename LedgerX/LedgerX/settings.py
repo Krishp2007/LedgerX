@@ -30,7 +30,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '10.101.79.100',   # 👈 your IP
+    '192.168.31.105',   # 👈 your IP
 ]
 
 # Application definition

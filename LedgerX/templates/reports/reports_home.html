@@ -1,0 +1,43 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container py-5 text-center">
+    <h2 class="fw-bold mb-2">Business <span class="gradient-text">Analytics</span></h2>
+    <p class="text-muted mb-5">Select a report to view detailed shop performance.</p>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-4">
+            <a href="{% url 'sales_report' %}" class="text-decoration-none">
+                <div class="card p-5 hover-up h-100">
+                    <div class="fs-1 mb-3">📈</div>
+                    <h5 class="fw-bold text-charcoal">Sales Report</h5>
+                    <p class="small text-muted mb-0">View CASH and CREDIT sales performance.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'product_report' %}" class="text-decoration-none">
+                <div class="card p-5 hover-up h-100">
+                    <div class="fs-1 mb-3">📦</div>
+                    <h5 class="fw-bold text-charcoal">Product Report</h5>
+                    <p class="small text-muted mb-0">Analyze which items are your best sellers.</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{% url 'customer_report' %}" class="text-decoration-none">
+                <div class="card p-5 hover-up h-100">
+                    <div class="fs-1 mb-3">👥</div>
+                    <h5 class="fw-bold text-charcoal">Outstanding Report</h5>
+                    <p class="small text-muted mb-0">Track all pending customer credit balances.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-up { transition: all 0.3s ease; }
+    .hover-up:hover { transform: translateY(-10px); background: #fcfcfc; }
+    .text-charcoal { color: var(--charcoal-900); }
+</style>
+{% endblock %}

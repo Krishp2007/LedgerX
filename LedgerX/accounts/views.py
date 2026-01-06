@@ -7,13 +7,11 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.utils import timezone
 import random
-
-from django.contrib.auth.tokens import default_token_generator
-
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.urls import reverse
+from .models import PasswordResetToken
 
 from .models import Shop
 from .models import PasswordResetOTP   # OTP model (shown below)
@@ -144,9 +142,6 @@ def register_view(request):
         return redirect('login')
 
     return render(request, 'accounts/forgot_password.html')
-
-from django.urls import reverse
-from .models import PasswordResetToken
 
 def forgot_password_view(request):
     if request.method == 'POST':

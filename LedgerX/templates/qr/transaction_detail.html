@@ -1,0 +1,112 @@
+{% extends 'base_public.html' %}
+{% load sales_extras %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+        <h2 class="fw-bold">Transaction Details</h2>
+        <div class="d-flex gap-2">
+            <a href="{% url 'transaction_list' %}" class="btn btn-light rounded-pill px-4">Back</a>
+            <button onclick="window.print()" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-printer me-2"></i>Print Bill
+            </button>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4 p-md-5 animate__animated animate__fadeIn" style="border-radius: 24px;">
+        <div class="row mb-5">
+            <div class="col-7">
+                <h5 class="text-muted small fw-bold mb-1 uppercase">CUSTOMER</h5>
+                <h4 class="fw-bold mb-0 text-dark">{{ transaction.customer.name|default:"Walking Customer" }}</h4>
+                <p class="text-muted mb-3">{{ transaction.customer.mobile|default:"Cash Sale" }}</p>
+
+                {% if transaction.customer %}
+                <div class="d-flex align-items-center gap-3 p-2 border rounded-4 bg-white shadow-sm d-inline-flex" style="border-style: dashed !important;">
+                    <img src="{% url 'generate_qr_image' transaction.customer.id %}" 
+                         alt="Ledger QR" 
+                         style="width: 80px; height: 80px;">
+                    <div class="pe-3">
+                        <div class="fw-bold x-small text-dark">Scan to View Ledger</div>
+                        <div class="text-muted xx-small">Track your payments &<br>current outstanding.</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-5 text-end">
+                <h5 class="text-muted small fw-bold mb-1 uppercase">TRANSACTION</h5>
+                <h4 class="fw-bold mb-0">#TX-{{ transaction.id }}</h4>
+                <p class="text-muted small mb-2">{{ transaction.transaction_date|date:"d M Y, h:i A" }}</p>
+                <span class="badge {% if transaction.transaction_type == 'CASH' %}bg-light text-dark border{% else %}bg-dark{% endif %} rounded-pill px-3">
+                    {{ transaction.transaction_type }}
+                </span>
+            </div>
+        </div>
+
+        {% if transaction.items.all %}
+        <div class="table-responsive mb-4">
+            <table class="table align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-3 border-0">Item Description</th>
+                        <th class="text-center border-0">Qty</th>
+                        <th class="text-end border-0">Price</th>
+                        <th class="text-end pe-3 border-0">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in transaction.items.all %}
+                    <tr>
+                        <td class="ps-3 border-0 fw-bold small">{{ item.product.name }}</td>
+                        <td class="text-center border-0 small">{{ item.quantity }}</td>
+                        <td class="text-end border-0 small">₹{{ item.price_at_sale }}</td>
+                        <td class="text-end pe-3 border-0 fw-bold small">₹{{ item.get_total_price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <div class="row justify-content-end mt-4">
+            <div class="col-md-5 col-lg-4">
+                <div class="p-3 bg-light rounded-4">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Total Bill:</span>
+                        <span class="fw-bold small">₹{{ transaction.total_amount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted small">Amount Paid:</span>
+                        <span class="fw-bold text-success small">₹{{ transaction.paid_amount|default:"0.00" }}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="fw-bold mb-0">Net Due:</h5>
+                        <h5 class="fw-bold text-danger mb-0">₹{{ transaction.total_amount|subtract:transaction.paid_amount }}</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5 pt-4 text-center d-none d-print-block border-top">
+            <p class="text-muted small mb-0">Thank you for shopping with <strong>{{ transaction.shop.name }}</strong></p>
+            <p class="xx-small text-muted">Bill generated via LedgerX</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    .xx-small { font-size: 0.65rem; }
+    .uppercase { text-transform: uppercase; letter-spacing: 0.5px; }
+    .text-emerald { color: #10b981; }
+
+    @media print {
+        body { background-color: white !important; padding: 0 !important; }
+        .container { max-width: 100% !important; width: 100% !important; margin: 0 !important; }
+        .card { box-shadow: none !important; border: none !important; padding: 0 !important; }
+        .d-print-none { display: none !important; }
+        .d-print-block { display: block !important; }
+    }
+</style>
+{% endblock %}

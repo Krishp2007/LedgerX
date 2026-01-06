@@ -1,5 +1,33 @@
-body {
-  background-color: #161616;
-  font-family: Arial, sans-serif;
-  color: #fff;
+:root {
+  /* Reference Site Color Palette */
+  --primary-indigo: #6366f1;
+  --primary-purple: #a855f7;
+  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  
+  --bg-light: #f8fafc;
+  --text-dark: #1e293b;
+  
+  --success-subtle: #d1fae5;
+  --success-text: #065f46;
+  --danger-subtle: #fee2e2;
+  --danger-text: #991b1b;
 }
+
+/* Apply to major elements */
+body {
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+}
+
+.btn-primary, .hero-section {
+  background: var(--primary-gradient) !important;
+  border: none !important;
+}
+
+.text-primary {
+  color: var(--primary-indigo) !important;
+}
+
+/* Modern Subtle Badges */
+.badge.bg-success-subtle { background-color: var(--success-subtle); color: var(--success-text); }
+.badge.bg-danger-subtle { background-color: var(--danger-subtle); color: var(--danger-text); }

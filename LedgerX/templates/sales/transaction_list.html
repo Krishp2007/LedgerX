@@ -1,0 +1,96 @@
+{% extends 'base_public.html' %}
+{% load sales_extras %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-5 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-0">Transaction History</h2>
+            <p class="text-muted small">Comprehensive view of all shop activity.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_sale' %}" class="btn btn-primary px-4 shadow-sm">+ New Sale</a>
+            <a href="{% url 'add_payment' %}" class="btn btn-outline-dark rounded-pill px-4 shadow-sm">+ Receive Payment</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm overflow-hidden animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3">DATE / ID</th>
+                        <th class="py-3">CUSTOMER</th>
+                        <th class="py-3">TYPE</th>
+                        <th class="py-3 text-end">BILL TOTAL</th>
+                        <th class="py-3 text-end text-success">PAID</th>
+                        <th class="py-3 text-end text-danger">DUE</th>
+                        <th class="pe-4 py-3 text-end">ACTION</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in transactions %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="small fw-bold text-dark">{{ tx.transaction_date|date:"d M Y" }}</div>
+                            <div class="x-small text-muted">#TX-{{ tx.id }}</div>
+                        </td>
+                        <td>
+                            <div class="small fw-bold">{{ tx.customer.name|default:"Walking Customer" }}</div>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill px-3 py-1 
+                                {% if tx.transaction_type == 'PAYMENT' %}bg-success-subtle text-success
+                                {% elif tx.transaction_type == 'CASH' %}bg-light text-dark border
+                                {% else %}bg-warning-subtle text-warning{% endif %}">
+                                {{ tx.transaction_type }}
+                            </span>
+                        </td>
+
+                        <td class="text-end fw-bold">
+                            ₹{% if tx.transaction_type == 'PAYMENT' %}0.00{% else %}{{ tx.total_amount }}{% endif %}
+                        </td>
+
+                        <td class="text-end text-success fw-bold">
+                            ₹{% if tx.transaction_type == 'PAYMENT' %}{{ tx.total_amount }}{% else %}{{ tx.paid_amount|default:"0.00" }}{% endif %}
+                        </td>
+
+                        <td class="text-end">
+                            <span class="fw-bold">
+                                {% if tx.transaction_type == 'PAYMENT' %}
+                                    <span class="text-muted small">Credit Added</span>
+                                {% elif tx.transaction_type == 'CASH' %}
+                                    <span class="text-success small">Settled</span>
+                                {% else %}
+                                    {% with remaining=tx.total_amount|subtract:tx.paid_amount %}
+                                        {% if remaining > 0 %}
+                                            <span class="text-danger">₹{{ remaining }}</span>
+                                        {% else %}
+                                            <span class="text-success small">Settled</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% endif %}
+                            </span>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <a href="{% url 'transaction_detail' tx.id %}" class="btn btn-sm btn-light rounded-pill px-3">Details</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No transactions found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-success-subtle { background-color: rgba(16, 185, 129, 0.1); }
+    .bg-warning-subtle { background-color: rgba(245, 158, 11, 0.1); }
+    .text-emerald { color: #10b981 !important; }
+</style>
+{% endblock %}

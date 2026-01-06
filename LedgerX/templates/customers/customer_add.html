@@ -1,0 +1,46 @@
+{% extends 'base_public.html' %}
+{% block title %}Add Customer | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <nav aria-label="breadcrumb" class="mb-3">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="{% url 'customer_list' %}" class="text-decoration-none text-muted">Customers</a></li>
+                    <li class="breadcrumb-item active text-emerald fw-bold" aria-current="page">New Customer</li>
+                </ol>
+            </nav>
+
+            <div class="card border-0 shadow-sm p-4 p-md-5 animate__animated animate__fadeInUp">
+                <div class="text-center mb-4">
+                    <div class="fs-1 mb-2">👤</div>
+                    <h3 class="fw-bold">New Credit Account</h3>
+                    <p class="text-muted small">Register a new customer for credit tracking.</p>
+                </div>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">FULL NAME</label>
+                        <input type="text" name="name" class="form-control bg-light border-0 shadow-none py-3" placeholder="Enter customer name" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">MOBILE NUMBER</label>
+                        <input type="text" name="mobile" class="form-control bg-light border-0 shadow-none py-3" placeholder="Enter 10-digit mobile" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-3">
+                        Register & Create QR
+                    </button>
+                    
+                    <a href="{% url 'customer_list' %}" class="btn btn-link w-100 mt-3 text-muted text-decoration-none small">
+                        Cancel and Return
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

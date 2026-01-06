@@ -1,3 +1,4 @@
+from decimal import Decimal,ROUND_HALF_UP
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -21,83 +22,60 @@ def add_sale(request):
 
     if request.method == 'POST':
         transaction_type = request.POST.get('transaction_type')
+        customer_id = request.POST.get('customer_id')
         customer = None
-
-        if transaction_type == Transaction.CREDIT:
-            customer_id = request.POST.get('customer_id')
+        
+        if transaction_type == 'CREDIT' and customer_id:
             customer = get_object_or_404(Customer, id=customer_id, shop=shop)
 
-        amount_paid = request.POST.get('amount_paid')
-        amount_paid = float(amount_paid) if amount_paid else 0
+        # Securely capture the paid amount as a Decimal
+        raw_paid = request.POST.get('amount_paid', '0')
+        paid_today = Decimal(str(raw_paid)) if raw_paid else Decimal('0')
 
-        total_amount = 0
+        total_bill = Decimal('0')
         items_to_create = []
 
         with db_transaction.atomic():
-
-            # 1️⃣ Create SALE (CASH or CREDIT)
+            # 1️⃣ Create Sale with both values
+            # Inside add_sale view
             sale = Transaction.objects.create(
                 shop=shop,
                 customer=customer,
                 transaction_type=transaction_type,
-                total_amount=0,
+                total_amount=0, 
+                paid_amount=paid_today,  # This will no longer crash after migration
                 transaction_date=timezone.now()
-            )
+)
 
             for product in products:
                 qty = int(request.POST.get(f'qty_{product.id}', 0))
-
                 if qty > 0:
-                    if product.stock_quantity < qty:
-                        messages.error(request, f'Not enough stock for {product.name}')
-                        raise Exception("Insufficient stock")
-
                     product.stock_quantity -= qty
                     product.save()
-
-                    line_total = qty * product.default_price
-                    total_amount += line_total
-
-                    items_to_create.append(
-                        TransactionItem(
-                            transaction=sale,
-                            product=product,
-                            quantity=qty,
-                            price_at_sale=product.default_price
-                        )
-                    )
-
-            if not items_to_create:
-                messages.error(request, 'No products selected')
-                return redirect('add_sale')
+                    total_bill += Decimal(qty) * product.default_price
+                    
+                    items_to_create.append(TransactionItem(
+                        transaction=sale, product=product, 
+                        quantity=qty, price_at_sale=product.default_price
+                    ))
 
             TransactionItem.objects.bulk_create(items_to_create)
-
-            sale.total_amount = total_amount
+            
+            # 2️⃣ Update the final total
+            sale.total_amount = total_bill
             sale.save()
 
-            # 2️⃣ CREATE PAYMENT IF AMOUNT PAID > 0
-            if amount_paid > 0:
+            # Optional: Still create a separate PAYMENT entry for the ledger history
+            if paid_today > 0:
                 Transaction.objects.create(
-                    shop=shop,
-                    customer=customer,
-                    transaction_type=Transaction.PAYMENT,
-                    total_amount=amount_paid,
-                    transaction_date=timezone.now()
+                    shop=shop, customer=customer, transaction_type='PAYMENT',
+                    total_amount=paid_today, transaction_date=timezone.now()
                 )
 
         messages.success(request, 'Sale recorded successfully')
         return redirect('transaction_list')
 
-    return render(
-        request,
-        'sales/add_sale.html',
-        {
-            'products': products,
-            'customers': customers
-        }
-    )
-
+    return render(request, 'sales/add_sale.html', {'products': products, 'customers': customers})
 
 @login_required
 def add_payment(request):
@@ -110,17 +88,18 @@ def add_payment(request):
 
     if request.method == 'POST':
         customer_id = request.POST.get('customer')
-        amount = request.POST.get('amount')
-
         customer = get_object_or_404(Customer, id=customer_id, shop=shop)
-
-        Transaction.objects.create(
-            shop=shop,
-            customer=customer,
-            transaction_type=Transaction.PAYMENT,
-            total_amount=amount,
-            transaction_date=timezone.now()
-        )
+        amount = request.POST.get('amount')
+        if amount:
+            # Always cast to Decimal for money!
+            Transaction.objects.create(
+                shop=shop,
+                customer=customer,
+                transaction_type=Transaction.PAYMENT,
+                total_amount=Decimal(str(amount)), # THIS ensures it acts as a "positive" payment
+                paid_amount=Decimal('0'),
+                transaction_date=timezone.now()
+            )
 
         messages.success(request, 'Payment recorded successfully')
         return redirect('transaction_list')

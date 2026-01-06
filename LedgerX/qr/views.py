@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.utils import timezone
 from django.db.models import Sum
-
+from decimal import Decimal
 from .models import QRToken
 from sales.models import Transaction
 
@@ -38,48 +38,33 @@ def generate_qr_image(request, customer_id):
     return HttpResponse(buffer, content_type='image/png')
 
 def customer_ledger_qr(request, secure_token):
-    qr = get_object_or_404(
-        QRToken,
-        secure_token=secure_token,
-        is_active=True
-    )
-
+    qr = get_object_or_404(QRToken, secure_token=secure_token, is_active=True)
     customer = qr.customer
-
-    transactions = Transaction.objects.filter(
-        customer=customer
-    ).order_by('transaction_date')
+    transactions = Transaction.objects.filter(customer=customer).order_by('transaction_date')
 
     ledger_rows = []
-    running_balance = 0
+    running_balance = Decimal('0.00')
 
     for tx in transactions:
         if tx.transaction_type == 'CREDIT':
-            running_balance += tx.total_amount
+            # Balance increases by Total, then decreases by the upfront paid_amount
+            running_balance += (tx.total_amount - tx.paid_amount)
         elif tx.transaction_type == 'PAYMENT':
+            # Balance decreases by standalone payments
             running_balance -= tx.total_amount
 
         ledger_rows.insert(0, {
             'tx': tx,
             'balance': running_balance,
-            'abs_balance': abs(running_balance),  # ✅ added
+            'abs_balance': abs(running_balance),
         })
-        
 
-    outstanding_amount = running_balance
-
-
-    return render(
-        request,
-        'qr/customer_ledger.html',
-        {
-            'customer': customer,
-            'ledger_rows': ledger_rows,  # 👈 NEW
-            'outstanding_amount': outstanding_amount,
-            'qr_token': qr,
-        }
-    )
-
+    return render(request, 'qr/customer_ledger.html', {
+        'customer': customer,
+        'ledger_rows': ledger_rows,
+        'outstanding_amount': running_balance,
+        'qr_token': qr,
+    })
 
 
 def qr_transaction_detail(request, secure_token, transaction_id):

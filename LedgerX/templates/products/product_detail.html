@@ -1,0 +1,36 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-5 animate__animated animate__fadeIn">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div>
+                        <span class="badge bg-emerald-subtle text-emerald mb-2">{{ product.category|default:"General" }}</span>
+                        <h2 class="fw-bold text-charcoal mb-0">{{ product.name }}</h2>
+                    </div>
+                    <a href="{% url 'product_edit' product.id %}" class="btn btn-outline-dark rounded-pill px-4">Edit Product</a>
+                </div>
+
+                <div class="row g-4 py-4 border-top border-bottom my-4">
+                    <div class="col-md-6">
+                        <p class="text-muted small fw-bold mb-1">CURRENT PRICE</p>
+                        <h3 class="fw-bold text-emerald">₹{{ product.default_price }}</h3>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="text-muted small fw-bold mb-1">STOCK AVAILABLE</p>
+                        <h3 class="fw-bold {% if product.stock_quantity < 5 %}text-danger{% else %}text-charcoal{% endif %}">
+                            {{ product.stock_quantity }} Units
+                        </h3>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted small">Added on {{ product.created_at|date:"d M Y" }}</p>
+                    <a href="{% url 'product_list' %}" class="text-decoration-none small fw-bold text-emerald">Back to Inventory List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 p-md-5 animate__animated animate__fadeInUp">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Edit Product</h3>
+                    <a href="{% url 'product_deactivate' product.id %}" class="text-danger small fw-bold text-decoration-none" onclick="return confirm('Remove this product from active inventory?')">Deactivate</a>
+                </div>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">PRODUCT NAME</label>
+                        <input type="text" name="name" class="form-control bg-light border-0 shadow-none" value="{{ product.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">CATEGORY</label>
+                        <input type="text" name="category" class="form-control bg-light border-0 shadow-none" value="{{ product.category|default:'' }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">DEFAULT PRICE (₹)</label>
+                            <input type="number" step="0.01" name="default_price" class="form-control bg-light border-0 shadow-none" value="{{ product.default_price }}" required>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label class="form-label fw-bold small text-muted">STOCK QUANTITY</label>
+                            <input type="number" name="stock_quantity" class="form-control bg-light border-0 shadow-none" value="{{ product.stock_quantity }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 text-center">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="rounded mb-3 shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% endif %}
+                        <label class="form-label fw-bold small text-muted d-block text-start">PRODUCT IMAGE</label>
+                        <input type="file" name="image" class="form-control bg-light border-0">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">Update Product</button>
+                    <a href="{% url 'product_list' %}" class="btn btn-link w-100 mt-2 text-muted text-decoration-none small">Discard Changes</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

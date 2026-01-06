@@ -1,0 +1,48 @@
+{% extends 'base_public.html' %}
+{% block title %}Outstanding Report | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeIn">
+        <h2 class="fw-bold">Outstanding Balances</h2>
+        <div class="d-flex gap-2">
+            <button onclick="window.print()" class="btn btn-outline-dark rounded-pill px-4">Print List</button>
+            <a href="{% url 'reports_home' %}" class="btn btn-primary px-4">Reports Home</a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3">CUSTOMER NAME</th>
+                        <th class="py-3">MOBILE</th>
+                        <th class="text-end pe-4 py-3">PENDING BALANCE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ item.customer.name }}</div>
+                        </td>
+                        <td class="text-muted">{{ item.customer.mobile }}</td>
+                        <td class="text-end pe-4">
+                            <div class="fw-bold text-danger fs-5">₹{{ item.balance }}</div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5">
+                            <div class="mb-2 fs-2">🎉</div>
+                            <div class="text-muted">No pending balances found! All accounts are clear.</div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

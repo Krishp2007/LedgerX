@@ -1,0 +1,32 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container py-5">
+    <h2 class="fw-bold mb-4">Account <span class="gradient-text">Settings</span></h2>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card p-4 border-0 shadow-sm animate__animated animate__fadeIn">
+                <h5 class="fw-bold mb-4 text-charcoal">Shop Information</h5>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-bold">SHOP NAME</div>
+                    <div class="col-sm-8 fw-bold">{{ shop.shop_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-bold">OWNER</div>
+                    <div class="col-sm-8 fw-bold">{{ shop.owner_name }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small fw-bold">EMAIL</div>
+                    <div class="col-sm-8 fw-bold">{{ user.email }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card p-4 border-0 shadow-sm bg-danger-subtle animate__animated animate__fadeInRight">
+                <h5 class="fw-bold mb-3 text-danger">Danger Zone</h5>
+                <p class="small text-muted mb-4">Deleting your account will permanently erase all sales, products, and customer records.</p>
+                <a href="{% url 'delete_shop_permanently' %}" class="btn btn-danger w-100 rounded-pill fw-bold">Delete Shop Permanently</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

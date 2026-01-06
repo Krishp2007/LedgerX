@@ -28,7 +28,8 @@ class Transaction(models.Model):
         on_delete=models.CASCADE,
         related_name='transactions'
     )
-
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     # Customer is required ONLY for credit & payment
     customer = models.ForeignKey(
         Customer,
@@ -63,7 +64,6 @@ class TransactionItem(models.Model):
     Individual product line in a SALE (cash or credit).
     PAYMENT transactions NEVER have items.
     """
-
     transaction = models.ForeignKey(
         Transaction,
         on_delete=models.CASCADE,

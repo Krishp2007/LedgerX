@@ -10,6 +10,8 @@ def root_view(request):
         return redirect('dashboard')  # Dashboard
     return render(request, 'public/home.html')
 
+def home_view(request):
+    return render(request, 'public/home.html')
 
 def about(request):
     return render(request, 'public/about.html')
@@ -17,3 +19,6 @@ def about(request):
 
 def contact(request):
     return render(request, 'public/contact.html')
+
+def dashboard(request):
+    return render(request, 'public/dashboard.html')

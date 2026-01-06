@@ -1,0 +1,46 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100" style="margin-top: -100px;">
+        <div class="col-md-6 col-lg-5">
+            <div class="text-center mb-4 animate__animated animate__fadeInDown">
+                <h1 class="fw-bold h2 mb-2">Create Your Shop</h1>
+                <p class="text-muted small">Join LedgerX to start managing your business digitally.</p>
+            </div>
+
+            <div class="card border-0 shadow-sm p-4 p-md-5 animate__animated animate__fadeInUp">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">USERNAME</label>
+                            <input type="text" name="username" class="form-control bg-light border-0 shadow-none" placeholder="johndoe" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold small text-muted">EMAIL</label>
+                            <input type="email" name="email" class="form-control bg-light border-0 shadow-none" placeholder="john@example.com" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">SHOP NAME</label>
+                        <input type="text" name="shop_name" class="form-control bg-light border-0 shadow-none" placeholder="Elite General Store" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">OWNER NAME</label>
+                        <input type="text" name="owner_name" class="form-control bg-light border-0 shadow-none" placeholder="John Doe" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                        <input type="password" name="password" class="form-control bg-light border-0 shadow-none" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-lg mb-3">Register Shop</button>
+                </form>
+                <div class="text-center mt-3">
+                    <span class="text-muted small">Already have an account?</span>
+                    <a href="{% url 'login' %}" class="fw-bold small text-decoration-none ms-1" style="color: var(--primary-emerald);">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

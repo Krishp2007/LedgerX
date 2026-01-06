@@ -1,0 +1,132 @@
+{% extends 'base_public.html' %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-0">Business Overview</h2>
+            <p class="text-muted small">Welcome back, {{ request.user.shop.owner_name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_sale' %}" class="btn btn-primary shadow-sm">+ New Sale</a>
+            <a href="{% url 'add_payment' %}" class="btn btn-outline-dark rounded-pill px-4 shadow-sm">+ Payment</a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5 animate__animated animate__fadeInUp">
+        <div class="col-md-4">
+            <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm">
+                <p class="text-muted small fw-bold mb-1 uppercase tracking-wider">Today's Sales</p>
+                <h3 class="fw-bold" style="color: var(--dark-emerald);">₹{{ todays_sales }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 text-center h-100 shadow-sm">
+                <p class="text-muted small fw-bold mb-1 uppercase tracking-wider">Today's Payments</p>
+                <h3 class="fw-bold" style="color: var(--primary-emerald);">₹{{ todays_payments }}</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm">
+                <p class="text-muted small fw-bold mb-1 uppercase tracking-wider">Total Outstanding</p>
+                <h3 class="fw-bold text-danger">₹{{ total_outstanding }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="col-6 col-md-3">
+            <a href="{% url 'customer_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100">
+                    <div class="fs-2 mb-2">👥</div>
+                    <div class="small fw-bold text-dark">Customers</div>
+                    <p class="text-muted x-small mb-0">Manage credit accounts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'product_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100">
+                    <div class="fs-2 mb-2">📦</div>
+                    <div class="small fw-bold text-dark">Inventory</div>
+                    <p class="text-muted x-small mb-0">Track stock levels</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'transaction_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100">
+                    <div class="fs-2 mb-2">🧾</div>
+                    <div class="small fw-bold text-dark">History</div>
+                    <p class="text-muted x-small mb-0">Review all receipts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'reports_home' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100">
+                    <div class="fs-2 mb-2">📈</div>
+                    <div class="small fw-bold text-dark">Reports</div>
+                    <p class="text-muted x-small mb-0">Growth analytics</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp animate__delay-2s overflow-hidden">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">High-Priority Collections</h5>
+            <a href="{% url 'customer_report' %}" class="small text-decoration-none fw-bold text-emerald">View All →</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3">CUSTOMER</th>
+                        <th class="py-3">CONTACT</th>
+                        <th class="text-end pe-4 py-3">PENDING BALANCE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_overdue %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ item.customer.name }}</div>
+                        </td>
+                        <td class="text-muted small">{{ item.customer.mobile }}</td>
+                        <td class="text-end pe-4">
+                            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">₹{{ item.balance }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted small">No outstanding balances 🎉</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-5 pt-4 border-top animate__animated animate__fadeIn">
+        <p class="text-muted small fw-bold text-uppercase mb-3 tracking-widest">Account Management</p>
+        <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'account_settings' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-dark border">
+                ⚙️ Settings
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-danger border">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-up { transition: 0.3s cubic-bezier(.25,.8,.25,1); border: 1px solid transparent !important; }
+    .hover-up:hover { 
+        transform: translateY(-8px); 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
+        border-color: var(--primary-emerald) !important; 
+    }
+    .x-small { font-size: 0.75rem; }
+</style>
+{% endblock %}
