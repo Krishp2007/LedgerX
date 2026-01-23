@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction as db_transaction
+from django.db.models import Sum
+
 
 from .models import Transaction, TransactionItem
 from products.models import Product
@@ -13,30 +15,27 @@ from customers.models import Customer
 # Create your views here.
 @login_required
 def add_sale(request):
-    """
-    Handles BOTH:
-    - Cash Sale (no customer)
-    - Credit Sale (with customer)
-
-    Always creates a Transaction.
-    """
-
     shop = request.user.shop
     products = Product.objects.filter(shop=shop, is_active=True)
     customers = Customer.objects.filter(shop=shop, is_active=True)
 
     if request.method == 'POST':
-        transaction_type = request.POST.get('transaction_type')  # CASH / CREDIT
+        transaction_type = request.POST.get('transaction_type')
         customer = None
 
         if transaction_type == Transaction.CREDIT:
-            customer_id = request.POST.get('customer')
+            customer_id = request.POST.get('customer_id')
             customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+        amount_paid = request.POST.get('amount_paid')
+        amount_paid = float(amount_paid) if amount_paid else 0
 
         total_amount = 0
         items_to_create = []
 
         with db_transaction.atomic():
+
+            # 1️⃣ Create SALE (CASH or CREDIT)
             sale = Transaction.objects.create(
                 shop=shop,
                 customer=customer,
@@ -76,6 +75,16 @@ def add_sale(request):
 
             sale.total_amount = total_amount
             sale.save()
+
+            # 2️⃣ CREATE PAYMENT IF AMOUNT PAID > 0
+            if amount_paid > 0:
+                Transaction.objects.create(
+                    shop=shop,
+                    customer=customer,
+                    transaction_type=Transaction.PAYMENT,
+                    total_amount=amount_paid,
+                    transaction_date=timezone.now()
+                )
 
         messages.success(request, 'Sale recorded successfully')
         return redirect('transaction_list')
@@ -125,15 +134,34 @@ def add_payment(request):
 
 @login_required
 def add_payment_for_customer(request, customer_id):
-    """
-    Adds payment from customer detail page.
-    """
-
     shop = request.user.shop
-    customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+    customer = get_object_or_404(
+        Customer,
+        id=customer_id,
+        shop=shop,
+        is_active=True
+    )
+
+    # Calculate outstanding
+    credit_total = Transaction.objects.filter(
+        customer=customer,
+        transaction_type=Transaction.CREDIT
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    payment_total = Transaction.objects.filter(
+        customer=customer,
+        transaction_type=Transaction.PAYMENT
+    ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+    outstanding = credit_total - payment_total
 
     if request.method == 'POST':
         amount = request.POST.get('amount')
+
+        if not amount or float(amount) <= 0:
+            messages.error(request, 'Invalid payment amount')
+            return redirect('add_payment_for_customer', customer_id=customer.id)
 
         Transaction.objects.create(
             shop=shop,
@@ -149,7 +177,10 @@ def add_payment_for_customer(request, customer_id):
     return render(
         request,
         'sales/add_payment_for_customer.html',
-        {'customer': customer}
+        {
+            'customer': customer,
+            'outstanding': outstanding
+        }
     )
 
 

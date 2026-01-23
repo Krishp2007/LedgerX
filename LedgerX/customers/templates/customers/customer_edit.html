@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Customer</title>
+</head>
+<body>
+
+<h2>Edit Customer</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Name</label><br>
+    <input type="text" name="name" value="{{ customer.name }}" required><br><br>
+
+    <label>Mobile</label><br>
+    <input type="text" name="mobile" required maxlength="10" minlength="10"><br><br>
+
+    <button type="submit">Update Customer</button>
+</form>
+
+<p>
+    <a href="{% url 'customer_list' %}">Back to Customers</a>
+</p>
+
+</body>
+</html>

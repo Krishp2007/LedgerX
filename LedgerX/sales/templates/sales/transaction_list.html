@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Transactions</title>
+  </head>
+  <body>
+    <h2>All Transactions</h2>
+
+    <table border="1" cellpadding="8">
+      <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Customer</th>
+        <th>Amount</th>
+        <th>Details</th>
+      </tr>
+
+      {% for tx in transactions %}
+      <tr>
+        <td>{{ tx.transaction_date|date:"d M Y" }}</td>
+        <td>{{ tx.transaction_type }}</td>
+        <td>
+          {% if tx.customer %} {{ tx.customer.name }} {% else %} Cash Customer
+          {% endif %}
+        </td>
+
+        <td>₹{{ tx.total_amount }}</td>
+        <td>
+          <a href="{% url 'transaction_detail' tx.id %}">View</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="5">No transactions found</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <p>
+      <a href="{% url 'dashboard' %}">Back to Dashboard</a>
+    </p>
+  </body>
+</html>

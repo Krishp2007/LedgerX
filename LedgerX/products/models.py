@@ -28,6 +28,12 @@ class Product(models.Model):
     # Soft delete
     is_active = models.BooleanField(default=True)
 
+    image = models.ImageField(
+        upload_to='products/',
+        null=True,
+        blank=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

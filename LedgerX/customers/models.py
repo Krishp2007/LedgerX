@@ -1,6 +1,8 @@
 from django.db import models
 from accounts.models import Shop
 
+from django.core.validators import RegexValidator
+
 class Customer(models.Model):
     """
     Credit (udhar) customers only.
@@ -16,7 +18,16 @@ class Customer(models.Model):
 
     # Customer identity
     name = models.CharField(max_length=150)
-    mobile = models.CharField(max_length=15)
+    # mobile = models.CharField(max_length=10)
+    mobile = models.CharField(
+        max_length=10,
+        validators=[
+            RegexValidator(
+                regex=r'^\d{10}$',
+                message='Mobile number must be exactly 10 digits'
+            )
+        ]
+    )
 
     # Soft delete
     is_active = models.BooleanField(default=True)

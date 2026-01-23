@@ -1,3 +1,4 @@
+import uuid
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.contrib.auth import authenticate, login, logout
@@ -7,21 +8,18 @@ from django.contrib import messages
 from django.utils import timezone
 import random
 
+from django.contrib.auth.tokens import default_token_generator
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+
 from .models import Shop
 from .models import PasswordResetOTP   # OTP model (shown below)
 
 
 # Create your views here.
-def root_redirect(request):
-    """
-    Root URL handler.
-    - If logged in → dashboard
-    - Else → login page
-    """
-
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    return redirect('login')
 
 
 def login_view(request):
@@ -88,13 +86,69 @@ def register_view(request):
     return render(request, 'accounts/register.html')
 
 
-def forgot_password_view(request):
-    """
-    Step 1 of OTP-based password reset.
-    - User enters email
-    - System sends 6-digit OTP
-    """
+# def forgot_password_view(request):
+#     """
+#     Step 1 of OTP-based password reset.
+#     - User enters email
+#     - System sends 6-digit OTP
+#     """
 
+#     if request.method == 'POST':
+#         email = request.POST.get('email')
+
+#         try:
+#             user = User.objects.get(email=email)
+#         except User.DoesNotExist:
+#             messages.error(request, 'No account found with this email')
+#             return redirect('forgot_password')
+
+#         # Generate 6-digit OTP
+#         otp_code = str(random.randint(100000, 999999))
+
+#         # Store OTP in DB
+#         PasswordResetOTP.objects.create(
+#             user=user,
+#             otp=otp_code
+#         )
+
+#         # TODO: Send OTP via Resend API
+#         print("DEBUG OTP:", otp_code)
+
+#         messages.success(request, 'OTP sent to your email')
+#         return redirect('reset_password')
+
+#     return render(request, 'accounts/forgot_password.html')
+# def forgot_password_view(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+
+        user = User.objects.filter(email=email).first()
+        if not user:
+            messages.error(request, "No user found with this email")
+            return redirect('forgot_password')
+
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+
+        reset_link = request.build_absolute_uri(
+            reverse('reset_password', args=[uid + '-' + token])
+        )
+
+        # For now just print (email later)
+        print("RESET LINK:", reset_link)
+
+        messages.success(
+            request,
+            "Password reset link generated. Check console for link."
+        )
+        return redirect('login')
+
+    return render(request, 'accounts/forgot_password.html')
+
+from django.urls import reverse
+from .models import PasswordResetToken
+
+def forgot_password_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
 
@@ -104,65 +158,47 @@ def forgot_password_view(request):
             messages.error(request, 'No account found with this email')
             return redirect('forgot_password')
 
-        # Generate 6-digit OTP
-        otp_code = str(random.randint(100000, 999999))
+        # ✅ Create reset token
+        token = uuid.uuid4()
 
-        # Store OTP in DB
-        PasswordResetOTP.objects.create(
+        PasswordResetToken.objects.create(
             user=user,
-            otp=otp_code
+            token=token,
+            created_at=timezone.now()
         )
 
-        # TODO: Send OTP via Resend API
-        print("DEBUG OTP:", otp_code)
-
-        messages.success(request, 'OTP sent to your email')
-        return redirect('reset_password')
+        # 🔥 THIS IS THE KEY LINE
+        return redirect('reset_password', token=token)
 
     return render(request, 'accounts/forgot_password.html')
 
+from django.shortcuts import get_object_or_404
+from django.contrib.auth.hashers import make_password
 
-def reset_password_view(request):
-    """
-    Step 2 of OTP-based password reset.
-    - Verify OTP
-    - Set new password
-    """
+def reset_password_view(request, token):
+    reset = get_object_or_404(
+        PasswordResetToken,
+        token=token,
+        is_used=False
+    )
 
     if request.method == 'POST':
-        email = request.POST.get('email')
-        otp_entered = request.POST.get('otp')
-        new_password = request.POST.get('password')
-        confirm_password = request.POST.get('confirm_password')
+        password = request.POST.get('password')
 
-        if new_password != confirm_password:
-            messages.error(request, 'Passwords do not match')
-            return redirect('reset_password')
+        reset.user.password = make_password(password)
+        reset.user.save()
 
-        try:
-            user = User.objects.get(email=email)
-            otp_obj = PasswordResetOTP.objects.filter(
-                user=user,
-                otp=otp_entered,
-                is_used=False
-            ).latest('created_at')
-        except:
-            messages.error(request, 'Invalid or expired OTP')
-            return redirect('reset_password')
+        reset.is_used = True
+        reset.save()
 
-        # Mark OTP as used
-        otp_obj.is_used = True
-        otp_obj.save()
-
-        # Set new password securely
-        user.set_password(new_password)
-        user.save()
-
-        messages.success(request, 'Password reset successful. Please login.')
+        messages.success(request, "Password reset successful")
         return redirect('login')
 
-    return render(request, 'accounts/reset_password.html')
-
+    return render(
+        request,
+        'accounts/reset_password.html',
+        {'token': token}
+    )
 
 @login_required
 def logout_view(request):

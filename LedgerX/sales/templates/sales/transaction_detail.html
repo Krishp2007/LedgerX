@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Detail</title>
+</head>
+<body>
+
+<h2>Transaction Detail</h2>
+
+<p><strong>Type:</strong> {{ transaction.transaction_type }}</p>
+<p><strong>Date:</strong> {{ transaction.transaction_date|date:"d M Y" }}</p>
+<p><strong>Amount:</strong> ₹{{ transaction.total_amount }}</p>
+
+{% if transaction.customer %}
+<p><strong>Customer:</strong> {{ transaction.customer.name }}</p>
+{% endif %}
+
+{% if items %}
+<h3>Items</h3>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Product</th>
+        <th>Quantity</th>
+        <th>Price</th>
+    </tr>
+
+    {% for item in items %}
+    <tr>
+        <td>{{ item.product.name }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>₹{{ item.price_at_sale }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+
+<p>
+    <a href="{% url 'transaction_list' %}">Back to Transactions</a>
+</p>
+
+</body>
+</html>

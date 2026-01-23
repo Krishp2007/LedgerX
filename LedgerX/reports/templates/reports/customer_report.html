@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Customer Outstanding</title>
+</head>
+<body>
+
+<h2>Customer Outstanding Report</h2>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Customer</th>
+        <th>Outstanding Amount</th>
+    </tr>
+
+    {% for row in report %}
+    <tr>
+        <td>{{ row.customer.name }}</td>
+        <td>₹{{ row.balance }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="2">No outstanding balances 🎉</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<p>
+    <a href="{% url 'reports_home' %}">Back to Reports</a>
+</p>
+
+</body>
+</html>

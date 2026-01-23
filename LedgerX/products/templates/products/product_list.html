@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Products | LedgerX</title>
+</head>
+<body>
+
+<h2>Products</h2>
+
+<p>
+    <a href="{% url 'product_add' %}">+ Add Product</a> |
+    <a href="{% url 'dashboard' %}">Dashboard</a>
+</p>
+
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Image</th>
+        <th>Name</th>
+        <th>Price</th>
+        <th>Stock</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for product in products %}
+    <tr>
+        <td>
+            {% if product.image %}
+                <img src="{{ product.image.url }}" width="60">
+            {% else %}
+                No Image
+            {% endif %}
+        </td>
+        <td>{{ product.name }}</td>
+        <td>₹{{ product.default_price }}</td>
+        <td>{{ product.stock_quantity }}</td>
+        <td>
+            <a href="{% url 'product_detail' product.id %}">View</a> |
+            <a href="{% url 'product_edit' product.id %}">Edit</a> |
+            <a href="{% url 'product_deactivate' product.id %}"
+               onclick="return confirm('Deactivate this product?');">
+               Deactivate
+            </a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No products added yet</td>
+    </tr>
+    {% endfor %}
+</table>
+
+</body>
+</html>

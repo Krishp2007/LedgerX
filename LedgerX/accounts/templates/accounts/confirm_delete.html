@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Delete</title>
+</head>
+<body>
+
+<h2>Delete Account</h2>
+
+<p style="color:red;">
+    This action is permanent. All data will be deleted.
+</p>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Enter your password to confirm:</label><br>
+    <input type="password" name="password" required><br><br>
+
+    <button type="submit">Delete My Account</button>
+</form>
+
+<a href="{% url 'account_settings' %}">Cancel</a>
+
+</body>
+</html>

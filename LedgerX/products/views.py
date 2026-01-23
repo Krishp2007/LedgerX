@@ -107,6 +107,9 @@ def product_edit(request, product_id):
         product.category = request.POST.get('category')
         product.default_price = request.POST.get('default_price')
         product.stock_quantity = request.POST.get('stock_quantity')
+        
+        if 'image' in request.FILES:
+            product.image = request.FILES['image']
 
         product.save()
 
