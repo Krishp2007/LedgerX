@@ -1,0 +1,37 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+
+<h3>Account Inactivity Warning</h3>
+
+<p>
+Your LedgerX account has been inactive for a long period.
+</p>
+
+<p>
+If you do not log in within the next <strong>90 days</strong>, your account will be
+<strong>permanently deleted</strong>.
+</p>
+
+<p>
+To keep your account active, simply log in once.
+</p>
+
+<div style="text-align:center; margin:24px 0;">
+  <a href="{{ login_url }}"
+     style="
+       background:#10b981;
+       color:#ffffff;
+       padding:12px 20px;
+       border-radius:10px;
+       text-decoration:none;
+       font-weight:600;
+     ">
+    Login to LedgerX
+  </a>
+</div>
+
+<p>
+If you no longer wish to use LedgerX, no action is required.
+</p>
+
+{% endblock %}

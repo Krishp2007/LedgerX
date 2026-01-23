@@ -29,6 +29,8 @@ urlpatterns = [
     path('', views.root_view, name='root'),
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
+
+    path("contact/send/", views.contact_ajax, name="contact_ajax"),
     
     path('', include('accounts.urls')),        # root & auth
 

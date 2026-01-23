@@ -1,0 +1,17 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+
+<h3>New Contact Message</h3>
+
+<p>
+<strong>Name:</strong> {{ name }}<br>
+<strong>Email:</strong> {{ email }}
+</p>
+
+<p><strong>Message:</strong></p>
+
+<p style="white-space:pre-line;">
+{{ message }}
+</p>
+
+{% endblock %}
