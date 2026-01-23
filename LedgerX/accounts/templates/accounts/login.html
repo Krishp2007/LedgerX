@@ -1,32 +1,97 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login | LedgerX</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
 
-<h2>Login</h2>
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 120px);">
+        <div class="col-md-6 col-lg-4">
+            
+            <div class="card border-0 shadow-2xl glass-card p-4 p-md-5 animate__animated animate__fadeInUp">
+                
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold h3 mb-1">Welcome Back</h2>
+                    <p class="text-muted small">Enter your credentials to access the shop.</p>
+                </div>
 
-<form method="post">
-    {% csrf_token %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissible fade show mb-4 small fw-bold shadow-sm" role="alert" style="border-left: 4px solid #ef4444;">
+                            <div class="d-flex align-items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-circle me-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                {{ message }}
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted">USERNAME</label>
+                        <input type="text" name="username" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="Shop username" required>
+                    </div>
 
-    <label>Username</label><br>
-    <input type="text" name="username" required><br><br>
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between">
+                            <label class="form-label fw-bold small text-muted">PASSWORD</label>
+                            <a href="{% url 'forgot_password' %}" class="small text-decoration-none fw-bold text-indigo">Forgot?</a>
+                        </div>
+                        <input type="password" name="password" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="••••••••" required>
+                    </div>
 
-    <label>Password</label><br>
-    <input type="password" name="password" required><br><br>
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-lg mb-3 text-white">
+                        Login
+                    </button>
+                </form>
 
-    <button type="submit">Login</button>
-</form>
+                <div class="text-center mt-3">
+                    <span class="text-muted small">New Shop Owner?</span>
+                    <a href="{% url 'register' %}" class="fw-bold small text-decoration-none ms-1 text-indigo">Create Account</a>
+                </div>
+            </div>
 
-<p>
-    <a href="{% url 'forgot_password' %}">Forgot Password?</a>
-</p>
+            <div class="text-center mt-4 animate__animated animate__fadeIn animate__delay-1s">
+                <p class="text-muted small" style="opacity: 0.7;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-lock me-1"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Securely encrypted
+                </p>
+            </div>
 
-<p>
-    Don’t have an account?
-    <a href="{% url 'register' %}">Register</a>
-</p>
+        </div>
+    </div>
+</div>
 
-</body>
-</html>
+<style>
+    /* Clean Indigo variables */
+    :root {
+        --primary-indigo: #4f46e5;
+        --indigo-glow: rgba(79, 70, 229, 0.1);
+        --slate-900: #0f172a;
+    }
+
+    .text-indigo { color: var(--primary-indigo); }
+
+    /* Glassmorphism */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.4) !important;
+        border-radius: 1rem;
+    }
+
+    .form-control {
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+    }
+
+    /* Soft focus state */
+    .form-control:focus {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 4px var(--indigo-glow) !important;
+    }
+
+    .shadow-2xl {
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08) !important;
+    }
+</style>
+{% endblock %}

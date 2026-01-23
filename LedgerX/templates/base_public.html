@@ -22,30 +22,29 @@
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}" />
 
-
     <style>
       /* ===== STICKY FOOTER (NO FIXED POSITION) ===== */
-html, body {
-  height: 100%;
-}
+      html,
+      body {
+        height: 100%;
+      }
 
-body {
-  display: flex;
-  flex-direction: column;
-}
+      body {
+        display: flex;
+        flex-direction: column;
+      }
 
-/* main content area grows */
-body > div {
-  flex: 1;
-}
+      /* main content area grows */
+      body > div {
+        flex: 1;
+      }
 
-/* footer stays at bottom when content is small */
-footer {
-  margin-top: auto;
-}
-
+      /* footer stays at bottom when content is small */
+      footer {
+        margin-top: auto;
+      }
     </style>
-   
+
     {% block extra_css %}{% endblock %}
   </head>
   <body>
@@ -125,6 +124,8 @@ footer {
         </div>
       </div>
     </nav>
+
+
 
     <div style="margin-top: 100px">{% block content %}{% endblock %}</div>
 
