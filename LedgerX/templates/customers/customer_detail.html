@@ -1,18 +1,35 @@
 {% extends 'base_public.html' %}
 {% block content %}
 <div class="container py-4">
-    <div class="row g-4 mb-5 animate__animated animate__fadeIn">
-        <div class="col-md-8">
-            <h2 class="fw-bold mb-1">{{ customer.name }}</h2>
-            <p class="text-muted">Contact: {{ customer.mobile }} | <span class="badge bg-emerald-subtle text-emerald px-2">Active Credit Account</span></p>
-        </div>
-        <div class="col-md-4 text-md-end">
-            <div class="card p-3 border-0 shadow-sm border-start border-danger border-4">
-                <p class="text-muted small fw-bold mb-0">TOTAL OUTSTANDING</p>
-                <h3 class="fw-bold text-danger mb-0">₹{{ outstanding }}</h3>
-            </div>
+    <div class="row g-4 mb-5 align-items-center animate__animated animate__fadeIn">
+    
+    <!-- Left: Customer Info -->
+    <div class="col-md-5">
+        <h2 class="fw-bold mb-1">{{ customer.name }}</h2>
+        <p class="text-muted mb-0">
+            Contact: {{ customer.mobile }}
+            <span class="badge bg-emerald-subtle text-emerald px-2">Active Credit Account</span>
+        </p>
+    </div>
+
+    <!-- Middle: QR Code -->
+    <div class="col-md-3 text-center">
+        <img src="{% url 'qr_image' customer.id %}" 
+             alt="Ledger QR"
+             class="img-fluid p-2 bg-white border rounded shadow-sm"
+             style="max-width:120px;">
+        <div class="small text-muted mt-1">Scan for Live Ledger</div>
+    </div>
+
+    <!-- Right: Outstanding -->
+    <div class="col-md-4 text-md-end">
+        <div class="card p-3 border-0 shadow-sm border-start border-danger border-4 d-inline-block text-start">
+            <p class="text-muted small fw-bold mb-0">TOTAL OUTSTANDING</p>
+            <h3 class="fw-bold text-danger mb-0">₹{{ outstanding }}</h3>
         </div>
     </div>
+
+</div>
 
     <div class="row g-4">
         <div class="col-lg-8">
@@ -58,7 +75,10 @@
                 <div class="p-3 bg-light rounded-4 mb-3">
                     <p class="small text-muted mb-0">This customer can scan their unique QR to view their live ledger status.</p>
                 </div>
-                <p class="small fw-bold text-emerald mb-3">Token: {{ qr_token.secure_token|truncatechars:15 }}</p>
+                {% comment %} <p class="small fw-bold text-emerald mb-3">
+                Token: {{ qr_token.secure_token|truncatechars:15 }}
+                </p> {% endcomment %}
+                {% comment %} <img src="{% url 'qr_image' customer.id %}" alt="Ledger QR" class="img-fluid mb-3" style="max-width:200px;"> {% endcomment %}
                 <div class="d-grid gap-2">
                     <a href="{% url 'customer_edit' customer.id %}" class="btn btn-outline-dark rounded-pill btn-sm">Edit Details</a>
                     <a href="{% url 'customer_deactivate' customer.id %}" class="btn btn-link text-danger small text-decoration-none" onclick="return confirm('Deactivate this customer?')">Deactivate Customer</a>

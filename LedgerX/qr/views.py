@@ -17,13 +17,13 @@ def generate_qr_image(request, customer_id):
     Generates QR image for a customer's ledger.
     Returns PNG image.
     """
-
     qr_token = get_object_or_404(
         QRToken,
         customer__id=customer_id
     )
 
-    # Absolute ledger URL
+    # request.build_absolute_uri will automatically use the IP 
+    # you used to access the site (e.g., 192.168.x.x)
     ledger_url = request.build_absolute_uri(
         reverse('customer_ledger_qr', args=[qr_token.secure_token])
     )
