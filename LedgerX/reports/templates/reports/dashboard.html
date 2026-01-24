@@ -1,52 +1,139 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Dashboard | LedgerX</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-  </head>
-  <body>
-    <h2>Dashboard</h2>
+{% extends 'base_public.html' %}
+{% load static %}
 
-    <hr />
+{% block title %}Dashboard | LedgerX{% endblock %}
 
-    <h3>Today Summary</h3>
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+    
+{% block content %}
 
-    <p><strong>Today's Sales:</strong> ₹{{ todays_sales }}</p>
-    <p><strong>Today's Payments:</strong> ₹{{ todays_payments }}</p>
-    <p><strong>Total Outstanding:</strong> ₹{{ total_outstanding }}</p>
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 animate__animated animate__fadeIn">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold mb-0">Business Overview</h2>
+            <p class="text-muted small">Welcome back, {{ request.user.shop.owner_name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_sale' %}" class="btn btn-primary shadow-sm fw-bold">
+                <span class="me-1">+</span> New Sale
+            </a>
+            <a href="{% url 'add_payment' %}" class="btn btn-outline-dark rounded-pill px-4 py-2 shadow-sm fw-bold">
+                <span class="me-1">+</span> Payment
+            </a>
+        </div>
+    </div>
 
-    <hr />
+    <div class="row g-4 mb-5 animate__animated animate__fadeInUp">
+        <div class="col-md-4">
+            <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm stat-card">
+                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Sales</p>
+                <h3 class="fw-bold stat-value text-emerald" data-value="{{ todays_sales }}">₹0</h3>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card p-4 text-center border-bottom border-success border-4 h-100 shadow-sm stat-card">
+                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Payments</p>
+                <h3 class="fw-bold stat-value text-success" data-value="{{ todays_payments }}">₹0</h3>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm stat-card">
+                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Total Outstanding</p>
+                <h3 class="fw-bold stat-value text-danger" data-value="{{ total_outstanding }}">₹0</h3>
+            </div>
+        </div>
+    </div>
 
-    <h3>Top Overdue Customers</h3>
+    <div class="row g-3 mb-5 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="col-6 col-md-3">
+            <a href="{% url 'customer_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">👥</div>
+                    <div class="small fw-bold text-dark">Customers</div>
+                    <p class="text-muted x-small mb-0">Manage credit accounts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'product_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">📦</div>
+                    <div class="small fw-bold text-dark">Inventory</div>
+                    <p class="text-muted x-small mb-0">Track stock levels</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'transaction_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">🧾</div>
+                    <div class="small fw-bold text-dark">History</div>
+                    <p class="text-muted x-small mb-0">Review all receipts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'reports_home' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">📈</div>
+                    <div class="small fw-bold text-dark">Reports</div>
+                    <p class="text-muted x-small mb-0">Growth analytics</p>
+                </div>
+            </a>
+        </div>
+    </div>
 
-    <table border="1" cellpadding="8">
-      <tr>
-        <th>Customer</th>
-        <th>Outstanding</th>
-      </tr>
+    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp animate__delay-2s overflow-hidden mb-5">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">High-Priority Collections</h5>
+            <a href="{% url 'customer_report' %}" class="small text-decoration-none fw-bold text-emerald">View All →</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">CUSTOMER</th>
+                        <th class="py-3 border-0">CONTACT</th>
+                        <th class="text-end pe-4 py-3 border-0">PENDING BALANCE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in top_overdue %}
+                    <tr>
+                        <td class="ps-4 border-0">
+                            <div class="fw-bold text-dark">{{ item.customer.name }}</div>
+                        </td>
+                        <td class="text-muted small border-0">{{ item.customer.mobile }}</td>
+                        <td class="text-end pe-4 border-0">
+                            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">₹{{ item.balance }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted small border-0">No outstanding balances 🎉</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-      {% for item in top_overdue %}
-      <tr>
-        <td>{{ item.customer.name }}</td>
-        <td>₹{{ item.balance }}</td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="2">No outstanding customers 🎉</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="mt-4 pt-4 border-top animate__animated animate__fadeIn">
+        <p class="text-muted small fw-bold text-uppercase mb-3 tracking-widest">Account Management</p>
+        <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'account_settings' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-dark border">
+                ⚙️ Settings
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-danger border">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+</div>
 
-    <hr />
-
-    <p>
-      <a href="{% url 'product_list' %}">Products</a> |
-      <a href="{% url 'customer_list' %}">Customers</a> |
-      <a href="{% url 'add_sale' %}">Add Sale</a> |
-      <a href="{% url 'transaction_list' %}">Sales</a> |
-      
-      <a href="{% url 'reports_home' %}">Reports</a> |
-      <a href="{% url 'logout' %}">Logout</a>
-    </p>
-  </body>
-</html>
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

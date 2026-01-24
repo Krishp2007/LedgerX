@@ -18,6 +18,9 @@ class Shop(models.Model):
     # Business details
     shop_name = models.CharField(max_length=150)
     owner_name = models.CharField(max_length=150)
+    
+    # 📸 NEW FIELD FOR IMAGE
+    profile_pic = models.ImageField(upload_to='shop_profiles/', blank=True, null=True)
 
     # Shop lifecycle
     # is_active = models.BooleanField(default=True)  
@@ -40,17 +43,12 @@ class PasswordResetOTP(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False)
 
+    def is_valid(self):
+        # Check if OTP is older than 10 minutes
+        from django.utils import timezone
+        import datetime
+        return self.created_at >= timezone.now() - datetime.timedelta(minutes=10)
+
     def __str__(self):
         return f"OTP for {self.user.email}"
 
-# accounts/models.py
-import uuid
-
-class PasswordResetToken(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    token = models.UUIDField(default=uuid.uuid4, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_used = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"{self.user.username} - {self.token}"

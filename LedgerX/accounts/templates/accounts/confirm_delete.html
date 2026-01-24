@@ -1,26 +1,59 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Confirm Delete</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
 
-<h2>Delete Account</h2>
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 120px);">
+        <div class="col-md-5 col-lg-4">
+            
+            <div class="card border-0 shadow-2xl glass-card p-4 p-md-5 animate__animated animate__fadeInUp position-relative overflow-hidden">
+                
+                <div class="position-absolute top-0 start-0 w-100 bg-danger" style="height: 6px;"></div>
 
-<p style="color:red;">
-    This action is permanent. All data will be deleted.
-</p>
+                <div class="text-center mb-4">
+                    <div class="mb-3 text-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-alert-triangle"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    </div>
+                    <h2 class="fw-bold h3 mb-2 text-danger">Delete Account?</h2>
+                    <p class="text-muted small mb-0">This action is <strong>permanent</strong>.</p>
+                </div>
 
-<form method="post">
-    {% csrf_token %}
+                <div class="alert alert-danger bg-danger-subtle border-danger-subtle small mb-4" role="alert">
+                    <ul class="mb-0 ps-3">
+                        <li>All sales & customer data will be lost.</li>
+                        <li>Your shop link will stop working.</li>
+                        <li>This cannot be undone.</li>
+                    </ul>
+                </div>
 
-    <label>Enter your password to confirm:</label><br>
-    <input type="password" name="password" required><br><br>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100 py-3 fw-bold rounded-3 shadow-lg mb-3">
+                        Send Verification Code
+                    </button>
+                </form>
 
-    <button type="submit">Delete My Account</button>
-</form>
+                <div class="text-center mt-2">
+                    <a href="{% url 'account_settings' %}" class="btn btn-light w-100 py-3 fw-bold rounded-3 text-muted">
+                        Cancel, Keep My Shop
+                    </a>
+                </div>
+            </div>
 
-<a href="{% url 'account_settings' %}">Cancel</a>
+        </div>
+    </div>
+</div>
 
-</body>
-</html>
+<style>
+    /* Danger Theme overrides */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(220, 38, 38, 0.2) !important; /* Red border */
+        border-radius: 1rem;
+    }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(220, 38, 38, 0.15) !important; }
+    
+    .bg-danger-subtle { background-color: #fef2f2; }
+    .border-danger-subtle { border-color: #fee2e2; }
+</style>
+{% endblock %}

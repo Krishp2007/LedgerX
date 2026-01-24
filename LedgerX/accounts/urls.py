@@ -8,7 +8,7 @@ urlpatterns = [
 
     # Registration Flow
     path('register/', views.register_view, name='register'),
-    path('register/verify/', views.verify_registration_otp_view, name='verify_registration_otp'), # <--- NEW URL
+    path('register/verify/', views.verify_registration_otp_view, name='verify_registration_otp'),
 
     # 3-Step Password Reset Flow
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
@@ -19,6 +19,8 @@ urlpatterns = [
 
     # Account / Shop management
     path('account/settings/', views.account_settings, name='account_settings'),
-    # path('account/deactivate/', views.deactivate_shop, name='deactivate_shop'),
-    path('account/delete/', views.delete_shop_permanently, name='delete_shop_permanently'),
+    
+    # 🔴 SECURE DELETION FLOW (Updated to match views.py)
+    path('account/delete/request/', views.delete_shop_request_view, name='delete_shop_request'),
+    path('account/delete/verify/', views.delete_shop_verify_view, name='delete_shop_verify'),
 ]
