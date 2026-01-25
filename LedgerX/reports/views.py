@@ -9,63 +9,58 @@ from django.utils import timezone
 from sales.models import Transaction, TransactionItem
 from customers.models import Customer
 
+from itertools import chain
+from operator import attrgetter
 
 
 # Create your views here.
 @login_required
 def dashboard(request):
     """
-    Main dashboard for shopkeeper.
-    Shows today's summary + top outstanding customers.
+    Main dashboard: Summary Cards + Recent Activity.
     """
-
     shop = request.user.shop
-    today = timezone.now().date()
+    today = timezone.localtime(timezone.now()).date()
 
-    # Today's sales = CASH + CREDIT
+    # 1. Today's Sales (Invoice Value: CASH + CREDIT)
     todays_sales = Transaction.objects.filter(
         shop=shop,
         transaction_type__in=['CASH', 'CREDIT'],
         transaction_date__date=today
     ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # Today's payments
+    # 2. Today's Inflow (Money In: PAYMENT + CASH)
+    # This matches your UI description: "Cash + Received"
     todays_payments = Transaction.objects.filter(
         shop=shop,
-        transaction_type='PAYMENT',
+        transaction_type__in=['PAYMENT', 'CASH'],
         transaction_date__date=today
     ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # Outstanding calculation
+    # 3. Calculate Outstanding & Advance
     customers = Customer.objects.filter(shop=shop, is_active=True)
-
-    outstanding_list = []
     total_outstanding = 0
+    total_advance = 0
 
     for customer in customers:
-        credit = Transaction.objects.filter(
-            customer=customer,
-            transaction_type='CREDIT'
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-
-        payment = Transaction.objects.filter(
-            customer=customer,
-            transaction_type='PAYMENT'
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-
+        # Calculate Balance: Credit - Payment
+        credit = Transaction.objects.filter(customer=customer, transaction_type='CREDIT').aggregate(total=Sum('total_amount'))['total'] or 0
+        payment = Transaction.objects.filter(customer=customer, transaction_type='PAYMENT').aggregate(total=Sum('total_amount'))['total'] or 0
         balance = credit - payment
 
         if balance > 0:
-            outstanding_list.append({
-                'customer': customer,
-                'balance': balance
-            })
-            total_outstanding += balance
+            total_outstanding += balance  # Money they owe you
+        elif balance < 0:
+            total_advance += abs(balance) # Money you owe them (Advance)
 
-    # Top 5 overdue customers
-    top_overdue = sorted(
-        outstanding_list,
-        key=lambda x: x['balance'],
+    # 4. Recent Activity (Transactions + New Customers mixed)
+    recent_txns = Transaction.objects.filter(shop=shop).select_related('customer').order_by('-created_at')[:5]
+    recent_custs = Customer.objects.filter(shop=shop).order_by('-created_at')[:5]
+
+    # Combine and sort by newest first
+    recent_activities = sorted(
+        chain(recent_txns, recent_custs),
+        key=attrgetter('created_at'),
         reverse=True
     )[:5]
 
@@ -76,10 +71,39 @@ def dashboard(request):
             'todays_sales': todays_sales,
             'todays_payments': todays_payments,
             'total_outstanding': total_outstanding,
-            'top_overdue': top_overdue
+            'total_advance': total_advance,  # 🟢 This variable was missing!
+            'recent_activities': recent_activities,
         }
     )
 
+
+@login_required
+def customer_report(request):
+    shop = request.user.shop
+    # Check filter type: 'outstanding' (default) or 'advance'
+    report_type = request.GET.get('type', 'outstanding') 
+
+    customers = Customer.objects.filter(shop=shop, is_active=True)
+    report = []
+
+    for customer in customers:
+        credit = Transaction.objects.filter(customer=customer, transaction_type='CREDIT').aggregate(total=Sum('total_amount'))['total'] or 0
+        payment = Transaction.objects.filter(customer=customer, transaction_type='PAYMENT').aggregate(total=Sum('total_amount'))['total'] or 0
+        balance = credit - payment
+
+        if report_type == 'outstanding' and balance > 0:
+            report.append({'customer': customer, 'balance': balance})
+        elif report_type == 'advance' and balance < 0:
+            report.append({'customer': customer, 'balance': abs(balance)})
+
+    return render(
+        request,
+        'reports/customer_report.html',
+        {
+            'report': report,
+            'report_type': report_type # Pass type to template
+        }
+    )
 
 @login_required
 def sales_report(request):
@@ -153,44 +177,6 @@ def product_report(request):
             'start_date': start_date,
             'end_date': end_date
         }
-    )
-
-
-@login_required
-def customer_report(request):
-    """
-    Customer outstanding report.
-    Shows pending balance for each credit customer.
-    """
-
-    shop = request.user.shop
-    customers = Customer.objects.filter(shop=shop, is_active=True)
-
-    report = []
-
-    for customer in customers:
-        credit = Transaction.objects.filter(
-            customer=customer,
-            transaction_type='CREDIT'
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-
-        payment = Transaction.objects.filter(
-            customer=customer,
-            transaction_type='PAYMENT'
-        ).aggregate(total=Sum('total_amount'))['total'] or 0
-
-        balance = credit - payment
-
-        if balance > 0:
-            report.append({
-                'customer': customer,
-                'balance': balance
-            })
-
-    return render(
-        request,
-        'reports/customer_report.html',
-        {'report': report}
     )
 
 

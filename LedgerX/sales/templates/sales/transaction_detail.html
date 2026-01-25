@@ -1,43 +1,243 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Transaction Detail</title>
-</head>
-<body>
+{% extends 'base_public.html' %} 
+{% load static %}
 
-<h2>Transaction Detail</h2>
+{% block title %}Transaction #{{ transaction.id }} | LedgerX{% endblock %}
 
-<p><strong>Type:</strong> {{ transaction.transaction_type }}</p>
-<p><strong>Date:</strong> {{ transaction.transaction_date|date:"d M Y" }}</p>
-<p><strong>Amount:</strong> ₹{{ transaction.total_amount }}</p>
+{% block content %}
+<div class="container py-3 py-md-4">
+  
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 d-print-none">
+    <div class="animate__animated animate__fadeIn">
+      <h2 class="fw-bold mb-0">Transaction Detail</h2>
+      <p class="text-muted small mb-0">
+        View items and payment status for this bill.
+      </p>
+    </div>
+    <div class="d-flex gap-2 animate__animated animate__fadeIn">
+      <a
+        href="{% url 'transaction_list' %}"
+        class="btn btn-outline-dark rounded-pill px-4 fw-bold small"
+      >
+        ← Back
+      </a>
+      <button
+        onclick="window.print()"
+        class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold small"
+      >
+        <i class="bi bi-printer me-2"></i> Print Bill
+      </button>
+    </div>
+  </div>
 
-{% if transaction.customer %}
-<p><strong>Customer:</strong> {{ transaction.customer.name }}</p>
-{% endif %}
+  <div
+    class="card border-0 shadow-sm p-3 p-md-5 animate__animated animate__fadeInUp"
+    style="border-radius: 24px"
+  >
+    <div class="row mb-4 mb-md-5 g-3 g-md-4 align-items-center">
+      
+      <div class="col-12 col-md-4">
+        <div class="mb-0">
+          <h5 class="text-muted x-small fw-bold mb-1 uppercase tracking-wider">CUSTOMER</h5>
+          <h4 class="fw-bold mb-0 text-dark">
+            {{ transaction.customer.name|default:"Walk-in Customer" }}
+          </h4>
+          <p class="text-muted small mb-0">
+            {{ transaction.customer.mobile|default:"Cash Sale" }}
+          </p>
+        </div>
+      </div>
 
-{% if items %}
-<h3>Items</h3>
+      <div class="col-12 col-md-4 text-center">
+        {% if transaction.customer %}
+        <div
+          class="d-inline-flex align-items-center gap-3 p-2 border rounded-4 bg-white shadow-sm mw-100 text-start"
+          style="
+            border-style: dashed !important;
+            border-width: 2px !important;
+            border-color: #e0e0e0 !important;
+          "
+        >
+          <div class="bg-light rounded p-1 flex-shrink-0" style="width: 110px; height: 110px;">
+             <img src="{% url 'qr_image' transaction.customer.id %}" 
+                  alt="Customer QR" 
+                  class="w-100 h-100 object-fit-cover"
+             >
+          </div>
+          <div class="pe-2">
+            <div class="fw-bold small text-dark">Digital Ledger</div>
+            <div class="text-muted xx-small">
+              Scan to view your full<br />history and payments.
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Product</th>
-        <th>Quantity</th>
-        <th>Price</th>
-    </tr>
+      <div class="col-12 col-md-4 text-md-end text-start">
+        <h5 class="text-muted x-small fw-bold mb-1 uppercase tracking-wider">BILLING INFO</h5>
+        <h4 class="fw-bold mb-0 text-dark">#TX-{{ transaction.id }}</h4>
+        <p class="text-muted small mb-2">
+          {{ transaction.transaction_date|date:"d M Y, h:i A" }}
+        </p>
+        
+        <span
+          class="badge {% if transaction.transaction_type == 'CASH' %}bg-light text-dark border{% elif transaction.transaction_type == 'PAYMENT' %}bg-success-subtle text-success border border-success{% else %}bg-dark{% endif %} rounded-pill px-4 py-2"
+        >
+          {{ transaction.get_transaction_type_display }}
+        </span>
+      </div>
+    </div>
 
-    {% for item in items %}
-    <tr>
-        <td>{{ item.product.name }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>₹{{ item.price_at_sale }}</td>
-    </tr>
-    {% endfor %}
-</table>
-{% endif %}
+    {% if transaction.items.all %}
+    <div class="table-responsive mb-4 mb-md-5">
+      <table class="table align-middle text-nowrap">
+        <thead class="bg-light text-muted">
+          <tr>
+            <th class="ps-3 border-0 py-3 small fw-bold">DESCRIPTION</th>
+            <th class="text-center border-0 py-3 small fw-bold">QTY</th>
+            <th class="text-end border-0 py-3 small fw-bold">UNIT PRICE</th>
+            <th class="text-end pe-3 border-0 py-3 small fw-bold">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in transaction.items.all %}
+          <tr>
+            <td class="ps-3 py-3 border-0">
+                <div class="d-flex align-items-center">
+                    {% if item.product.image %}
+                        <img src="{{ item.product.image.url }}" 
+                             alt="{{ item.product.name }}" 
+                             class="rounded-3 me-3 border"
+                             style="width: 40px; height: 40px; object-fit: cover;">
+                    {% else %}
+                        <div class="bg-light rounded-3 me-3 d-flex align-items-center justify-content-center text-muted border" 
+                             style="width: 40px; height: 40px;">
+                            <span class="small">📦</span>
+                        </div>
+                    {% endif %}
+                    <span class="fw-bold text-dark">{{ item.product.name }}</span>
+                </div>
+            </td>
+            <td class="text-center py-3 border-0 text-muted">
+              {{ item.quantity }}
+            </td>
+            <td class="text-end py-3 border-0 text-muted">
+              ₹{{ item.price_at_sale }}
+            </td>
+            <td class="text-end pe-3 py-3 border-0 fw-bold text-dark">
+              ₹{{ item.get_total_price }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="bg-light rounded-4 p-4 p-md-5 text-center mb-5 border border-dashed">
+      <div class="fs-1 mb-2">💰</div>
+      <h5 class="fw-bold text-dark mb-1">Payment Transaction</h5>
+      <p class="text-muted small mb-0">
+        This is a direct payment record. No items are attached.
+      </p>
+    </div>
+    {% endif %}
 
-<p>
-    <a href="{% url 'transaction_list' %}">Back to Transactions</a>
-</p>
+    <div class="row justify-content-end">
+      <div class="col-12 col-md-6 col-lg-5">
+        <div class="p-4 bg-light rounded-4">
+          
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-muted small">Total Amount:</span>
+            <span class="fw-bold small">₹{{ transaction.total_amount }}</span>
+          </div>
+          
+          <hr class="my-3 border-secondary-subtle">
 
-</body>
-</html>
+          <div class="d-flex justify-content-between align-items-center">
+            
+            {% if transaction.transaction_type == 'CASH' %}
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Net Total</h5>
+                    <small class="text-success fw-bold">Paid via Cash</small>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">₹{{ transaction.total_amount }}</h3>
+
+            {% elif transaction.transaction_type == 'CREDIT' %}
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Total Due</h5>
+                    <small class="text-danger fw-bold">Added to Ledger</small>
+                </div>
+                <h3 class="fw-bold text-danger mb-0">₹{{ transaction.total_amount }}</h3>
+
+            {% elif transaction.transaction_type == 'PAYMENT' %}
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Received</h5>
+                    <small class="text-success fw-bold">Payment Accepted</small>
+                </div>
+                <h3 class="fw-bold text-success mb-0">₹{{ transaction.total_amount }}</h3>
+            {% endif %}
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-5 pt-4 text-center d-none d-print-block border-top">
+      <p class="text-muted small mb-1">
+        Thank you for your business at
+        <strong>{{ transaction.shop.owner_name }}</strong>
+      </p>
+      <p class="xx-small text-muted">
+        System Generated Invoice • LedgerX
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .xx-small {
+    font-size: 0.65rem;
+  }
+  .uppercase {
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+  
+  .table > :not(caption) > * > * {
+    border-bottom-width: 1px;
+    border-color: #f0f0f0;
+  }
+
+  @media print {
+    body {
+      background-color: white !important;
+      visibility: visible !important;
+    }
+    .container {
+      max-width: 100% !important;
+      width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    .card {
+      box-shadow: none !important;
+      border: none !important;
+    }
+    .d-print-none {
+      display: none !important;
+    }
+    .d-print-block {
+      display: block !important;
+    }
+    .bg-light {
+      background-color: #f8f9fa !important;
+      -webkit-print-color-adjust: exact;
+    }
+    .badge {
+      border: 1px solid #000;
+      color: #000 !important;
+    }
+  }
+</style>
+{% endblock %}

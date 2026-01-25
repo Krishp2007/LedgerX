@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction as db_transaction
 from django.db.models import Sum
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger # 🟢 Added Imports
 
 from .models import Transaction, TransactionItem
 from products.models import Product
@@ -102,35 +102,42 @@ def add_sale(request):
 @login_required
 def add_payment(request):
     """
-    Adds a payment (no items, no stock change).
+    Handles 'Add Payment' from the Dashboard (Dropdown Selection).
     """
-
     shop = request.user.shop
     customers = Customer.objects.filter(shop=shop, is_active=True)
 
     if request.method == 'POST':
-        customer_id = request.POST.get('customer')
+        customer_id = request.POST.get('customer') # Get ID from dropdown
         amount = request.POST.get('amount')
 
-        customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+        # 1. Check if empty
+        if not customer_id:
+            messages.error(request, "Please select a customer from the list.")
+            return render(request, 'sales/add_payment.html', {'customers': customers})
 
-        Transaction.objects.create(
-            shop=shop,
-            customer=customer,
-            transaction_type=Transaction.PAYMENT,
-            total_amount=amount,
-            transaction_date=timezone.now()
-        )
+        # 2. Try to find the customer (Crash-Proof Way)
+        try:
+            customer_obj = Customer.objects.get(id=customer_id, shop=shop)
+        except (Customer.DoesNotExist, ValueError):
+            messages.error(request, "Error: Selected customer not found.")
+            return redirect('add_payment')
 
-        messages.success(request, 'Payment recorded successfully')
-        return redirect('transaction_list')
+        # 3. Save
+        try:
+            Transaction.objects.create(
+                shop=shop,
+                customer=customer_obj,
+                transaction_type='PAYMENT',
+                total_amount=amount
+            )
+            messages.success(request, f"Payment of ₹{amount} received from {customer_obj.name}.")
+            return redirect('dashboard')
+        except Exception as e:
+            messages.error(request, f"Error saving payment: {e}")
+            return redirect('add_payment')
 
-    return render(
-        request,
-        'sales/add_payment.html',
-        {'customers': customers}
-    )
-
+    return render(request, 'sales/add_payment.html', {'customers': customers})
 
 @login_required
 def add_payment_for_customer(request, customer_id):
@@ -187,22 +194,37 @@ def add_payment_for_customer(request, customer_id):
 @login_required
 def transaction_list(request):
     """
-    Shows all transactions for the logged-in shop.
+    Shows a LIST of transactions with Pagination (10 per page).
     """
-
     shop = request.user.shop
+    # 1. Get ALL records first
+    transactions_list = Transaction.objects.filter(shop=shop).order_by('-created_at')
 
-    transactions = Transaction.objects.filter(
-        shop=shop,
-        is_active=True
-    ).order_by('-transaction_date')
+    # 2. Apply Filters
+    date_filter = request.GET.get('date')
+    if date_filter == 'today':
+        today = timezone.localtime(timezone.now()).date()
+        transactions_list = transactions_list.filter(transaction_date__date=today)
 
-    return render(
-        request,
-        'sales/transaction_list.html',
-        {'transactions': transactions}
-    )
+    type_filter = request.GET.get('type')
+    if type_filter:
+        types = type_filter.split(',')
+        transactions_list = transactions_list.filter(transaction_type__in=types)
 
+    # 3. Apply Pagination (10 items per page)
+    page = request.GET.get('page', 1)
+    paginator = Paginator(transactions_list, 10) # Show 10 transactions per page
+
+    try:
+        transactions = paginator.page(page)
+    except PageNotAnInteger:
+        transactions = paginator.page(1)
+    except EmptyPage:
+        transactions = paginator.page(paginator.num_pages)
+
+    return render(request, 'sales/transaction_list.html', {
+        'transactions': transactions # Now this is a 'Page' object, not just a list
+    })
 
 @login_required
 def transaction_detail(request, transaction_id):

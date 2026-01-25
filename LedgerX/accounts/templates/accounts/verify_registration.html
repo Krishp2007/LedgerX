@@ -6,8 +6,8 @@
         <div class="col-md-5 col-lg-4">
             
             <div class="text-center mb-4 animate__animated animate__fadeInDown">
-                <h1 class="fw-bold h3 mb-2 gradient-text">Set New Password</h1>
-                <p class="text-muted small">Secure your account with a strong password.</p>
+                <h1 class="fw-bold h3 mb-2 gradient-text">Verify Email</h1>
+                <p class="text-muted small">We sent a code to <strong>{{ email }}</strong></p>
             </div>
 
             <div class="card border-0 shadow-2xl glass-card p-4 p-md-5 animate__animated animate__fadeInUp">
@@ -15,7 +15,7 @@
                 {% if messages %}
                     {% for message in messages %}
                         <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4 small fw-bold shadow-sm" role="alert"
-                             style="border-left: 4px solid #ef4444;">
+                             style="border-left: 4px solid {% if message.tags == 'error' %}#ef4444{% else %}#10b981{% endif %};">
                             {{ message }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
@@ -26,20 +26,18 @@
                     {% csrf_token %}
                     
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-muted">NEW PASSWORD</label>
-                        <input type="password" name="password" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="••••••••" required>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label fw-bold small text-muted">CONFIRM PASSWORD</label>
-                        <input type="password" name="confirm_password" class="form-control form-control-lg bg-light border-0 shadow-none" placeholder="••••••••" required>
+                        <label class="form-label fw-bold small text-muted">ENTER OTP</label>
+                        <input type="text" name="otp" maxlength="6" class="form-control form-control-lg bg-light border-0 shadow-none text-center fw-bold" style="letter-spacing: 5px; font-size: 1.5rem;" placeholder="------" required>
                     </div>
 
                     <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-lg mb-3 text-white">
-                        Reset Password
+                        Create Account
                     </button>
                 </form>
 
+                <div class="text-center mt-3">
+                    <a href="{% url 'register' %}" class="small text-decoration-none fw-bold text-muted">Change Email / Register Again</a>
+                </div>
             </div>
 
         </div>
@@ -47,10 +45,13 @@
 </div>
 
 <style>
+    /* Exact same style variables as your other pages */
     :root { --primary-emerald: #10b981; --emerald-glow: rgba(16, 185, 129, 0.2); }
+    .gradient-text { background: linear-gradient(135deg, #111827 0%, #374151 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .glass-card { background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4) !important; border-radius: 1rem; }
     .form-control:focus { box-shadow: 0 0 0 4px var(--emerald-glow) !important; }
-    .btn-primary { background-color: var(--primary-emerald); border-color: var(--primary-emerald); }
+    .btn-primary { background-color: var(--primary-emerald); border-color: var(--primary-emerald); transition: all 0.3s ease; }
+    .btn-primary:hover { background-color: #059669; border-color: #059669; transform: translateY(-1px); }
     .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08) !important; }
 </style>
 {% endblock %}
