@@ -26,25 +26,53 @@
     </div>
 
     <div class="row g-4 mb-5 animate__animated animate__fadeInUp">
-        <div class="col-md-4">
-            <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm stat-card">
-                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Sales</p>
-                <h3 class="fw-bold stat-value text-emerald" data-value="{{ todays_sales }}">₹0</h3>
-            </div>
+        
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'transaction_list' %}?date=today&type=CASH,CREDIT" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Sales</p>
+                    <h3 class="fw-bold stat-value text-emerald" data-value="{{ todays_sales }}">
+                        ₹{{ todays_sales }}
+                    </h3>
+                    <small class="text-muted x-small">(Invoice Value)</small>
+                </div>
+            </a>
         </div>
         
-        <div class="col-md-4">
-            <div class="card p-4 text-center border-bottom border-success border-4 h-100 shadow-sm stat-card">
-                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Payments</p>
-                <h3 class="fw-bold stat-value text-success" data-value="{{ todays_payments }}">₹0</h3>
-            </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'transaction_list' %}?date=today&type=PAYMENT,CASH" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-success border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Inflow</p>
+                    <h3 class="fw-bold stat-value text-success" data-value="{{ todays_payments }}">
+                        ₹{{ todays_payments }}
+                    </h3>
+                    <small class="text-muted x-small">(Cash + Received)</small>
+                </div>
+            </a>
         </div>
         
-        <div class="col-md-4">
-            <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm stat-card">
-                <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Total Outstanding</p>
-                <h3 class="fw-bold stat-value text-danger" data-value="{{ total_outstanding }}">₹0</h3>
-            </div>
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'customer_report' %}?type=outstanding" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Outstanding</p>
+                    <h3 class="fw-bold stat-value text-danger" data-value="{{ total_outstanding }}">
+                        ₹{{ total_outstanding }}
+                    </h3>
+                    <small class="text-muted x-small">(To Collect)</small>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'customer_report' %}?type=advance" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-warning border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Advance Rec.</p>
+                    <h3 class="fw-bold stat-value text-warning" data-value="{{ total_advance }}">
+                        ₹{{ total_advance }}
+                    </h3>
+                    <small class="text-muted x-small">(Pre-paid)</small>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -89,35 +117,67 @@
 
     <div class="card border-0 shadow-sm animate__animated animate__fadeInUp animate__delay-2s overflow-hidden mb-5">
         <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
-            <h5 class="fw-bold mb-0 text-dark">High-Priority Collections</h5>
-            <a href="{% url 'customer_report' %}" class="small text-decoration-none fw-bold text-emerald">View All →</a>
+            <h5 class="fw-bold mb-0 text-dark">Recent Activity</h5>
+            <a href="{% url 'transaction_list' %}" class="small text-decoration-none fw-bold text-emerald">View History →</a>
         </div>
         <div class="table-responsive">
             <table class="table align-middle mb-0 table-hover">
                 <thead class="bg-light text-muted small">
                     <tr>
-                        <th class="ps-4 py-3 border-0">CUSTOMER</th>
-                        <th class="py-3 border-0">CONTACT</th>
-                        <th class="text-end pe-4 py-3 border-0">PENDING BALANCE</th>
+                        <th class="ps-4 py-3 border-0">ACTIVITY</th>
+                        <th class="py-3 border-0">DETAILS</th>
+                        <th class="text-end pe-4 py-3 border-0">TIME</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in top_overdue %}
-                    <tr>
-                        <td class="ps-4 border-0">
-                            <div class="fw-bold text-dark">{{ item.customer.name }}</div>
-                        </td>
-                        <td class="text-muted small border-0">{{ item.customer.mobile }}</td>
-                        <td class="text-end pe-4 border-0">
-                            <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">₹{{ item.balance }}</span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center py-5 text-muted small border-0">No outstanding balances 🎉</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+    {% for item in recent_activities %}
+        <tr style="cursor: pointer;" 
+            onclick="window.location='{% if item.transaction_type %}{% url 'transaction_detail' item.id %}{% else %}{% url 'customer_detail' item.id %}{% endif %}'">
+            
+            <td class="ps-4 border-0">
+                <div class="d-flex align-items-center">
+                    {% if item.transaction_type %}
+                        {% if item.transaction_type == 'PAYMENT' %}
+                            <div class="bg-success-subtle text-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">💰</div>
+                            <div>
+                                <div class="fw-bold text-dark">Payment Received</div>
+                                <span class="text-muted x-small">Credit Settlement</span>
+                            </div>
+                        {% else %}
+                            <div class="bg-primary-subtle text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">🧾</div>
+                            <div>
+                                <div class="fw-bold text-dark">New Sale</div>
+                                <span class="text-muted x-small">{{ item.get_transaction_type_display }}</span>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bg-warning-subtle text-warning rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">👤</div>
+                        <div>
+                            <div class="fw-bold text-dark">New Customer</div>
+                            <span class="text-muted x-small">Account Created</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+
+            <td class="border-0">
+                {% if item.transaction_type %}
+                    <div class="fw-bold text-dark">₹{{ item.total_amount }}</div>
+                    <small class="text-muted">{% if item.customer %}{{ item.customer.name }}{% else %}Cash Sale{% endif %}</small>
+                {% else %}
+                    <div class="fw-bold text-dark">{{ item.name }}</div>
+                    <small class="text-muted">{{ item.mobile }}</small>
+                {% endif %}
+            </td>
+
+            <td class="text-end pe-4 border-0">
+                <span class="badge bg-light text-muted border fw-normal">{{ item.created_at|timesince }} ago</span>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="3" class="text-center py-5 text-muted small border-0">No recent activity yet 🚀</td></tr>
+    {% endfor %}
+</tbody>
             </table>
         </div>
     </div>
@@ -128,7 +188,10 @@
             <a href="{% url 'account_settings' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-dark border">
                 ⚙️ Settings
             </a>
-            <a href="{% url 'logout' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-danger border">
+            <a href="#" 
+               class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-danger border"
+               data-bs-toggle="modal" 
+               data-bs-target="#logoutModal">
                 🚪 Logout
             </a>
         </div>

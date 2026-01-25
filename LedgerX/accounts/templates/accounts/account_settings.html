@@ -11,16 +11,6 @@
     </div>
   </div>
 
-  {% if messages %} {% for message in messages %} 
-  {% if 'modal_' not in message.tags %}
-  <div
-    class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm fw-bold small"
-    role="alert"
-  >
-    {{ message }}
-    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-  </div>
-  {% endif %} {% endfor %} {% endif %}
 
   <div class="row g-4">
     <div class="col-lg-5 animate__animated animate__fadeInLeft">
@@ -575,15 +565,15 @@
         ></button>
 
         {% if request.user.shop.profile_pic %}
-        <div
+        <div 
           class="rounded-circle shadow-2xl overflow-hidden d-flex align-items-center justify-content-center bg-light mx-auto"
-          style="width: 300px; height: 300px"
+          style="width: 100%; max-width: 300px; aspect-ratio: 1/1;"
         >
-          <img
-            src="{{ request.user.shop.profile_pic.url }}"
-            class="w-100 h-100 object-fit-cover"
-            alt="Profile Picture"
-          />
+            <img
+              src="{{ request.user.shop.profile_pic.url }}"
+              class="w-100 h-100 object-fit-cover"
+              alt="Profile Picture"
+            />
         </div>
         {% else %}
         <div

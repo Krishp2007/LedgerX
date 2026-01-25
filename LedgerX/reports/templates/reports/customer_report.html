@@ -1,33 +1,66 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Customer Outstanding</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
 
-<h2>Customer Outstanding Report</h2>
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                {% if report_type == 'advance' %}
+                    🟢 Advance Payments
+                {% else %}
+                    🔴 Outstanding Report
+                {% endif %}
+            </h2>
+            <p class="text-muted small">
+                {% if report_type == 'advance' %}
+                    Customers who have paid in advance (Negative Balance).
+                {% else %}
+                    Customers with pending payments.
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-dark rounded-pill px-4 fw-bold">← Back</a>
+    </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Customer</th>
-        <th>Outstanding Amount</th>
-    </tr>
-
-    {% for row in report %}
-    <tr>
-        <td>{{ row.customer.name }}</td>
-        <td>₹{{ row.balance }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="2">No outstanding balances 🎉</td>
-    </tr>
-    {% endfor %}
-</table>
-
-<p>
-    <a href="{% url 'reports_home' %}">Back to Reports</a>
-</p>
-
-</body>
-</html>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3">CUSTOMER</th>
+                        <th class="py-3">MOBILE</th>
+                        <th class="text-end pe-4 py-3">
+                            {% if report_type == 'advance' %}ADVANCE AMOUNT{% else %}PENDING AMOUNT{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in report %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{% url 'customer_detail' item.customer.id %}" class="fw-bold text-dark text-decoration-none">
+                                {{ item.customer.name }}
+                            </a>
+                        </td>
+                        <td class="text-muted">{{ item.customer.mobile }}</td>
+                        <td class="text-end pe-4">
+                            {% if report_type == 'advance' %}
+                                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill fw-bold">₹{{ item.balance }}</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill fw-bold">₹{{ item.balance }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center py-5 text-muted">
+                            No records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

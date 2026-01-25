@@ -1,43 +1,98 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Transactions</title>
-  </head>
-  <body>
-    <h2>All Transactions</h2>
+{% extends 'base_public.html' %}
 
-    <table border="1" cellpadding="8">
-      <tr>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Customer</th>
-        <th>Amount</th>
-        <th>Details</th>
-      </tr>
+{% block title %}Transactions | LedgerX{% endblock %}
 
-      {% for tx in transactions %}
-      <tr>
-        <td>{{ tx.transaction_date|date:"d M Y" }}</td>
-        <td>{{ tx.transaction_type }}</td>
-        <td>
-          {% if tx.customer %} {{ tx.customer.name }} {% else %} Cash Customer
-          {% endif %}
-        </td>
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 animate__animated animate__fadeInDown">
+        <div>
+            <h2 class="fw-bold mb-1">
+                {% if 'CASH,CREDIT' in request.GET.type %}
+                    🧾 Sales History
+                {% elif 'PAYMENT' in request.GET.type %}
+                    💰 Payment Inflow
+                {% else %}
+                    📋 Transaction History
+                {% endif %}
+            </h2>
+            <p class="text-muted small">
+                {% if request.GET.date == 'today' %}
+                    <span class="badge bg-emerald-subtle text-emerald border border-emerald">📅 Today Only</span>
+                {% else %}
+                    Showing all records
+                {% endif %}
+            </p>
+        </div>
+        
+        <div>
+            <a href="{% url 'dashboard' %}" class="btn btn-dark rounded-pill px-4 fw-bold small shadow-sm">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
 
-        <td>₹{{ tx.total_amount }}</td>
-        <td>
-          <a href="{% url 'transaction_detail' tx.id %}">View</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="5">No transactions found</td>
-      </tr>
-      {% endfor %}
-    </table>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">DATE</th>
+                        <th class="py-3 border-0">DETAILS</th>
+                        <th class="py-3 border-0">TYPE</th>
+                        <th class="text-end pe-4 py-3 border-0">AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr style="cursor: pointer;" onclick="window.location='{% url 'transaction_detail' transaction.id %}'">
+                        
+                        <td class="ps-4 border-0">
+                            <div class="fw-bold text-dark">{{ transaction.transaction_date|date:"M d, Y" }}</div>
+                            <small class="text-muted">{{ transaction.transaction_date|time:"h:i A" }}</small>
+                        </td>
 
-    <p>
-      <a href="{% url 'dashboard' %}">Back to Dashboard</a>
-    </p>
-  </body>
-</html>
+                        <td class="border-0">
+                            {% if transaction.customer %}
+                                <div class="fw-bold text-dark">{{ transaction.customer.name }}</div>
+                                <small class="text-muted">{{ transaction.customer.mobile }}</small>
+                            {% else %}
+                                <div class="fw-bold text-muted">Walk-in Customer</div>
+                                <small class="text-muted">Cash Sale</small>
+                            {% endif %}
+                        </td>
+
+                        <td class="border-0">
+                            {% if transaction.transaction_type == 'PAYMENT' %}
+                                <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-pill">Payment</span>
+                            {% elif transaction.transaction_type == 'CREDIT' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 rounded-pill">Credit Sale</span>
+                            {% else %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1 rounded-pill">Cash Sale</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="text-end pe-4 border-0">
+                            <span class="fw-bold fs-6 font-monospace">
+                                {% if transaction.transaction_type == 'PAYMENT' %}
+                                    <span class="text-success">+ ₹{{ transaction.total_amount }}</span>
+                                {% else %}
+                                    <span class="text-dark">₹{{ transaction.total_amount }}</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5">
+                            <div class="text-muted opacity-50 display-1 mb-3">📭</div>
+                            <h5 class="fw-bold text-muted">No transactions found</h5>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
