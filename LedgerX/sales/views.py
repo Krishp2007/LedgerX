@@ -87,7 +87,7 @@ def add_sale(request):
                 )
 
         messages.success(request, 'Sale recorded successfully')
-        return redirect('dashboard')
+        return redirect('transaction_list')
 
     return render(
         request,
@@ -204,7 +204,7 @@ def transaction_list(request):
     # 🔍 FILTER: Date (e.g., ?date=today)
     date_filter = request.GET.get('date')
     if date_filter == 'today':
-        today = timezone.now().date()
+        today = timezone.localtime(timezone.now()).date()
         transactions = transactions.filter(transaction_date__date=today)
 
     # 🔍 FILTER: Transaction Type (e.g., ?type=CASH,CREDIT)

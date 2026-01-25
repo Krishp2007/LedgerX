@@ -20,7 +20,7 @@ def dashboard(request):
     Main dashboard: Summary Cards + Recent Activity.
     """
     shop = request.user.shop
-    today = timezone.now().date()
+    today = timezone.localtime(timezone.now()).date()
 
     # 1. Today's Sales (Invoice Value: CASH + CREDIT)
     todays_sales = Transaction.objects.filter(
