@@ -23,4 +23,8 @@ urlpatterns = [
     # 🔴 SECURE DELETION FLOW (Updated to match views.py)
     path('account/delete/request/', views.delete_shop_request_view, name='delete_shop_request'),
     path('account/delete/verify/', views.delete_shop_verify_view, name='delete_shop_verify'),
+
+
+    # ⚡ NEW AJAX URL
+    path('api/check-username/', views.check_username, name='check_username'),
 ]

@@ -337,7 +337,6 @@ def logout_view(request):
     return redirect('login')
 
 
-
 @login_required
 def account_settings(request):
     shop = request.user.shop
@@ -402,9 +401,9 @@ def account_settings(request):
             # Update Username (Unique Check)
             if new_username and new_username != user.username:
                 if User.objects.filter(username=new_username).exists():
-                    messages.error(request, "Username already taken.")
-                    context['show_edit_profile_modal'] = True # 👈 KEEP MODAL OPEN
-                    return render(request, 'accounts/account_settings.html', context)
+                    # 🟢 ADDING TAG: 'modal_edit_profile'
+                    messages.error(request, "Username already taken.", extra_tags='modal_edit_profile')
+                    return redirect('account_settings')
                 user.username = new_username
                 user.save()
 
@@ -433,15 +432,14 @@ def account_settings(request):
 
             # 1. Verify Old Password
             if not user.check_password(old_pass):
-                messages.error(request, "Incorrect old password.")
-                context['show_change_password_modal'] = True # 👈 KEEP MODAL OPEN
-                return render(request, 'accounts/account_settings.html', context)
+                # 🟢 ADDING TAG: 'modal_change_password'
+                messages.error(request, "Incorrect old password.", extra_tags='modal_change_password')
+                return redirect('account_settings')
 
             # 2. Verify Match
             if new_pass != confirm_pass:
-                messages.error(request, "New passwords do not match.")
-                context['show_change_password_modal'] = True # 👈 KEEP MODAL OPEN
-                return render(request, 'accounts/account_settings.html', context)
+                messages.error(request, "New passwords do not match.", extra_tags='modal_change_password')
+                return redirect('account_settings')
 
             # 3. 🛡️ SECURITY SHIELD (Validation)
             try:
@@ -459,9 +457,8 @@ def account_settings(request):
             except ValidationError as e:
                 # Show the specific error to the user (e.g., "Too short")
                 error_msg = e.messages[0] if hasattr(e, 'messages') else str(e)
-                messages.error(request, error_msg)
-                context['show_change_password_modal'] = True # 👈 KEEP MODAL OPEN
-                return render(request, 'accounts/account_settings.html', context)
+                messages.error(request, error_msg, extra_tags='modal_change_password')
+                return redirect('account_settings')
 
             # 4. Success: Save
             user.set_password(new_pass)
@@ -610,3 +607,20 @@ def delete_shop_verify_view(request):
             messages.error(request, "Invalid Verification Code.")
 
     return render(request, 'accounts/verify_delete.html')
+
+
+from django.http import JsonResponse
+
+@login_required
+def check_username(request):
+    """
+    API endpoint to check if username exists in real-time.
+    """
+    username = request.GET.get('username', None)
+    if not username:
+        return JsonResponse({'is_taken': False})
+
+    # Check if taken by SOMEONE ELSE (ignore if it's the current user's own name)
+    is_taken = User.objects.filter(username__iexact=username).exclude(username=request.user.username).exists()
+    
+    return JsonResponse({'is_taken': is_taken})

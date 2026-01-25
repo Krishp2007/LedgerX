@@ -11,7 +11,8 @@
     </div>
   </div>
 
-  {% if messages %} {% for message in messages %}
+  {% if messages %} {% for message in messages %} 
+  {% if 'modal_' not in message.tags %}
   <div
     class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm fw-bold small"
     role="alert"
@@ -19,7 +20,7 @@
     {{ message }}
     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
   </div>
-  {% endfor %} {% endif %}
+  {% endif %} {% endfor %} {% endif %}
 
   <div class="row g-4">
     <div class="col-lg-5 animate__animated animate__fadeInLeft">
@@ -79,7 +80,7 @@
                 class="text-muted fw-bold d-block x-small tracking-wider mb-1"
                 >SHOP NAME</small
               >
-              <p class="fw-bold text-dark fs-5 mb-0">
+              <p class="fw-bold text-dark fs-6 mb-0">
                 {{ request.user.shop.shop_name }}
               </p>
             </div>
@@ -88,7 +89,7 @@
                 class="text-muted fw-bold d-block x-small tracking-wider mb-1"
                 >OWNER NAME</small
               >
-              <p class="fw-bold text-dark fs-5 mb-0">
+              <p class="fw-bold text-dark fs-6 mb-0">
                 {{ request.user.shop.owner_name }}
               </p>
             </div>
@@ -97,7 +98,7 @@
                 class="text-muted fw-bold d-block x-small tracking-wider mb-1"
                 >USERNAME</small
               >
-              <p class="fw-bold text-dark fs-5 mb-0">
+              <p class="fw-bold text-dark fs-6 mb-0">
                 @{{ request.user.username }}
               </p>
             </div>
@@ -171,7 +172,7 @@
                   >LAST LOGIN</small
                 >
                 <span class="text-dark fw-bold small">
-                  {% if request.user.last_login %} 
+                  {% if request.user.last_login %}
                   {{request.user.last_login|timesince }} ago {% else %} Just now
                   {% endif %}
                 </span>
@@ -242,223 +243,94 @@
         </div>
       </div>
     </div>
-
-    <div
-      class="modal fade"
-      id="changePasswordModal"
-      tabindex="-1"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-2xl rounded-4">
-          <div class="modal-header border-0 pb-0 pt-4 px-4">
-            <div>
-              <h5 class="modal-title fw-bold text-dark">Change Password</h5>
-              <p class="text-muted small mb-0">
-                Enter your current password to set a new one.
-              </p>
-            </div>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body p-4">
-            <form method="post">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="change_password" />
-
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted"
-                  >OLD PASSWORD</label
-                >
-                <input
-                  type="password"
-                  name="old_password"
-                  class="form-control bg-light border-0"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              <hr class="text-muted opacity-25 my-3" />
-
-              <div class="mb-3">
-                <label class="form-label small fw-bold text-muted"
-                  >NEW PASSWORD</label
-                >
-                <input
-                  type="password"
-                  name="new_password"
-                  class="form-control bg-light border-0"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-              <div class="mb-4">
-                <label class="form-label small fw-bold text-muted"
-                  >CONFIRM NEW PASSWORD</label
-                >
-                <input
-                  type="password"
-                  name="confirm_password"
-                  class="form-control bg-light border-0"
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              <div class="d-grid">
-                <button
-                  type="submit"
-                  class="btn btn-primary py-3 fw-bold rounded-3 shadow-sm"
-                >
-                  Update Password
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </div>
 
 <div class="modal fade" id="editProfileModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content border-0 shadow-2xl rounded-4">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold">Edit Profile</h5>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"
-          aria-label="Close"
-        ></button>
-      </div>
-      <div class="modal-body p-4">
-        <form method="post" enctype="multipart/form-data">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="update_profile" />
-
-          <div class="text-center mb-4">
-            <div class="position-relative d-inline-block">
-              <div
-                class="rounded-circle shadow-sm overflow-hidden d-flex align-items-center justify-content-center bg-light"
-                style="width: 80px; height: 80px"
-              >
-                {% if request.user.shop.profile_pic %}
-                <img
-                  src="{{ request.user.shop.profile_pic.url }}"
-                  id="editPreview"
-                  class="w-100 h-100 object-fit-cover"
-                />
-                {% else %}
-                <div
-                  class="fw-bold text-white fs-3 d-flex align-items-center justify-content-center w-100 h-100"
-                  style="
-                    background: linear-gradient(
-                      135deg,
-                      #10b981 0%,
-                      #059669 100%
-                    );
-                  "
-                >
-                  {{ request.user.shop.owner_name|first|upper }}
-                </div>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-2xl rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        {% if 'modal_edit_profile' in message.tags %}
+                            <div class="alert alert-danger small fw-bold shadow-sm mb-3">
+                                {{ message }}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
                 {% endif %}
-              </div>
-              <label
-                for="id_profile_pic"
-                class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm p-1 cursor-pointer border"
-                style="transform: translate(20%, 20%)"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
-                  ></path>
-                  <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-              </label>
-              <input
-                type="file"
-                name="profile_pic"
-                id="id_profile_pic"
-                class="d-none"
-                accept="image/*"
-                onchange="previewImage(this)"
-              />
-            </div>
 
-            {% if request.user.shop.profile_pic %}
-            <div class="mt-2">
-              <button
-                type="submit"
-                name="action"
-                value="remove_photo"
-                class="btn btn-link text-danger text-decoration-none small fw-bold p-0"
-              >
-                Remove Photo
-              </button>
-            </div>
-            {% endif %}
-          </div>
+                <form id="editProfileForm" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" id="profileAction" value="update_profile">
 
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted">SHOP NAME</label>
-            <input
-              type="text"
-              name="shop_name"
-              class="form-control"
-              value="{{ request.user.shop.shop_name }}"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted"
-              >OWNER NAME</label
-            >
-            <input
-              type="text"
-              name="owner_name"
-              class="form-control"
-              value="{{ request.user.shop.owner_name }}"
-              required
-            />
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-bold text-muted">USERNAME</label>
-            <input
-              type="text"
-              name="username"
-              class="form-control"
-              value="{{ request.user.username }}"
-              required
-            />
-          </div>
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <div class="rounded-circle shadow-sm overflow-hidden d-flex align-items-center justify-content-center bg-light" 
+                                 style="width: 80px; height: 80px;">
+                                
+                                <img src="{% if request.user.shop.profile_pic %}{{ request.user.shop.profile_pic.url }}{% endif %}" 
+                                     id="editPreview" 
+                                     class="w-100 h-100 object-fit-cover {% if not request.user.shop.profile_pic %}d-none{% endif %}">
+                                
+                                <div id="initialsView" 
+                                     class="fw-bold text-white fs-3 d-flex align-items-center justify-content-center w-100 h-100 {% if request.user.shop.profile_pic %}d-none{% endif %}"
+                                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                    {{ request.user.shop.owner_name|first|upper }}
+                                </div>
+                            </div>
 
-          <button
-            type="submit"
-            class="btn btn-primary w-100 py-3 fw-bold rounded-3 mt-2"
-          >
-            Save Changes
-          </button>
-        </form>
-      </div>
+                            <label for="id_profile_pic" class="position-absolute bottom-0 end-0 bg-white rounded-circle shadow-sm p-1 cursor-pointer border" style="transform: translate(20%, 20%);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                            </label>
+                            <input type="file" name="profile_pic" id="id_profile_pic" class="d-none" accept="image/*" onchange="previewImage(this)">
+                        </div>
+                        
+                        {% if request.user.shop.profile_pic %}
+                        <div class="mt-2">
+                            <button type="button" onclick="triggerRemovePhoto()" class="btn btn-link text-danger text-decoration-none small fw-bold p-0">
+                                Remove Photo
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">SHOP NAME</label>
+                        <input type="text" name="shop_name" class="form-control" value="{{ request.user.shop.shop_name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">OWNER NAME</label>
+                        <input type="text" name="owner_name" class="form-control" value="{{ request.user.shop.owner_name }}" required>
+                    </div>
+                    <div class="mb-3">
+    <label class="form-label small fw-bold text-muted">USERNAME</label>
+    
+    <input type="text" 
+           name="username" 
+           id="id_username" 
+           class="form-control" 
+           value="{{ request.user.username }}" 
+           onkeyup="checkUsername()" 
+           required>
+           
+    <div id="usernameError" class="text-danger small fw-bold mt-1 d-none">
+        <i class="me-1">⚠️</i> This username is already taken.
     </div>
-  </div>
+</div>
+
+<button type="submit" id="saveProfileBtn" class="btn btn-primary w-100 py-3 fw-bold rounded-3 mt-2">
+    Save Changes
+</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div
@@ -630,6 +502,12 @@
         ></button>
       </div>
       <div class="modal-body p-4">
+        {% if messages %} {% for message in messages %}
+         {% if 'modal_change_password' in message.tags %}
+        <div class="alert alert-danger small fw-bold shadow-sm mb-3">
+          <i class="me-2">⚠️</i> {{ message }}
+        </div>
+        {% endif %} {% endfor %} {% endif %}
         <form method="post">
           {% csrf_token %}
           <input type="hidden" name="action" value="change_password" />
@@ -697,14 +575,19 @@
         ></button>
 
         {% if request.user.shop.profile_pic %}
-        <img
-          src="{{ request.user.shop.profile_pic.url }}"
-          class="img-fluid rounded-3 shadow-2xl"
-          style="max-height: 80vh"
-        />
+        <div
+          class="rounded-circle shadow-2xl overflow-hidden d-flex align-items-center justify-content-center bg-light mx-auto"
+          style="width: 300px; height: 300px"
+        >
+          <img
+            src="{{ request.user.shop.profile_pic.url }}"
+            class="w-100 h-100 object-fit-cover"
+            alt="Profile Picture"
+          />
+        </div>
         {% else %}
         <div
-          class="rounded-3 shadow-2xl d-flex align-items-center justify-content-center text-white display-1 fw-bold"
+          class="rounded-circle shadow-2xl d-flex align-items-center justify-content-center text-white display-1 fw-bold mx-auto"
           style="
             width: 300px;
             height: 300px;
@@ -798,32 +681,118 @@
   }
 
   function previewImage(input) {
-      if (input.files && input.files[0]) {
-          var reader = new FileReader();
-          reader.onload = function(e) {
-              var preview = document.getElementById('editPreview');
-              if(preview) {
-                  preview.src = e.target.result;
-              } else {
-                  // If no image existed before (just initials), we might need to reload to see preview nicely
-                  // or just trust the upload process. For now, simple reload instructions:
-              }
-          }
-          reader.readAsDataURL(input.files[0]);
-      }
-  }
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                var previewImg = document.getElementById('editPreview');
+                var initialsDiv = document.getElementById('initialsView');
+
+                if (previewImg) {
+                    // Set the new image
+                    previewImg.src = e.target.result;
+                    // Show the image tag
+                    previewImg.classList.remove('d-none');
+                }
+                
+                if (initialsDiv) {
+                    // Hide the initials div
+                    initialsDiv.classList.add('d-none');
+                }
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
 
   // 🚀 AUTOMATICALLY OPEN MODALS BASED ON BACKEND CONTEXT
   document.addEventListener("DOMContentLoaded", function() {
-      {% if show_otp_modal %}
-          new bootstrap.Modal(document.getElementById('recoveryStep2Modal')).show();
-      {% endif %}
 
-      {% if show_reset_modal %}
-          new bootstrap.Modal(document.getElementById('recoveryStep3Modal')).show();
-      {% endif %}
-  });
+        // 1. RECOVERY FLOW (Keep existing logic for OTP)
+        {% if show_otp_modal %}
+            new bootstrap.Modal(document.getElementById('recoveryStep2Modal')).show();
+        {% endif %}
+        {% if show_reset_modal %}
+            new bootstrap.Modal(document.getElementById('recoveryStep3Modal')).show();
+        {% endif %}
 
-  
+        // 2. CHECK MESSAGES FOR TAGS TO AUTO-OPEN MODALS
+        {% if messages %}
+            {% for message in messages %}
+
+                // If Profile Error -> Open Profile Modal
+                {% if 'modal_edit_profile' in message.tags %}
+                    var profileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+                    profileModal.show();
+                {% endif %}
+
+                // If Password Error -> Open Password Modal
+                {% if 'modal_change_password' in message.tags %}
+                    var passModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                    passModal.show();
+                {% endif %}
+
+            {% endfor %}
+        {% endif %}
+    });
+
+    // Auto-Open Modal on Error (Checks for tags)
+    document.addEventListener("DOMContentLoaded", function() {
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'modal_edit_profile' in message.tags %}
+                    new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+                {% endif %}
+                {% if 'modal_change_password' in message.tags %}
+                    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    });
+
+    function triggerRemovePhoto() {
+        if (confirm("Are you sure you want to remove your profile photo?")) {
+            // Change the hidden action field to 'remove_photo'
+            document.getElementById('profileAction').value = 'remove_photo';
+            // Submit the form
+            document.getElementById('editProfileForm').submit();
+        }
+    }
+
+    let typingTimer;                
+    const doneTypingInterval = 500;  // Wait 500ms after typing stops
+
+    function checkUsername() {
+        clearTimeout(typingTimer);
+        const usernameInput = document.getElementById('id_username');
+        const errorDiv = document.getElementById('usernameError');
+        const saveBtn = document.getElementById('saveProfileBtn');
+        const username = usernameInput.value;
+
+        // Reset state while typing
+        usernameInput.classList.remove('is-invalid', 'is-valid');
+        errorDiv.classList.add('d-none');
+        saveBtn.disabled = false;
+
+        if (username) {
+            typingTimer = setTimeout(() => {
+                // Call our new Django API
+                fetch(`{% url 'check_username' %}?username=${username}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_taken) {
+                        // Username Taken: Show Error & Disable Button
+                        usernameInput.classList.add('is-invalid');
+                        errorDiv.classList.remove('d-none');
+                        saveBtn.disabled = true;
+                    } else {
+                        // Username Available: Show Green Border
+                        usernameInput.classList.add('is-valid');
+                        saveBtn.disabled = false;
+                    }
+                });
+            }, doneTypingInterval);
+        }
+    }
 </script>
 {% endblock %}
