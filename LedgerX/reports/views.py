@@ -54,15 +54,15 @@ def dashboard(request):
             total_advance += abs(balance) # Money you owe them (Advance)
 
     # 4. Recent Activity (Transactions + New Customers mixed)
-    recent_txns = Transaction.objects.filter(shop=shop).select_related('customer').order_by('-created_at')[:8]
-    recent_custs = Customer.objects.filter(shop=shop).order_by('-created_at')[:8]
+    recent_txns = Transaction.objects.filter(shop=shop).select_related('customer').order_by('-created_at')[:5]
+    recent_custs = Customer.objects.filter(shop=shop).order_by('-created_at')[:5]
 
     # Combine and sort by newest first
     recent_activities = sorted(
         chain(recent_txns, recent_custs),
         key=attrgetter('created_at'),
         reverse=True
-    )[:8]
+    )[:5]
 
     return render(
         request,

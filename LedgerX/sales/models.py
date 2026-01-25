@@ -81,5 +81,8 @@ class TransactionItem(models.Model):
     # Snapshot price at time of sale
     price_at_sale = models.DecimalField(max_digits=10, decimal_places=2)
 
+    def get_total_price(self):
+        return self.price_at_sale * self.quantity
+
     def __str__(self):
         return f"{self.product.name} x {self.quantity}"

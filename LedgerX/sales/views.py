@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction as db_transaction
 from django.db.models import Sum
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger # 🟢 Added Imports
 
 from .models import Transaction, TransactionItem
 from products.models import Product
@@ -194,26 +194,37 @@ def add_payment_for_customer(request, customer_id):
 @login_required
 def transaction_list(request):
     """
-    Shows a LIST of transactions.
-    Used by Dashboard Cards (Today's Sales, Payments, etc.)
-    Does NOT require an ID.
+    Shows a LIST of transactions with Pagination (10 per page).
     """
     shop = request.user.shop
-    transactions = Transaction.objects.filter(shop=shop).order_by('-created_at')
+    # 1. Get ALL records first
+    transactions_list = Transaction.objects.filter(shop=shop).order_by('-created_at')
 
-    # 🔍 FILTER: Date (e.g., ?date=today)
+    # 2. Apply Filters
     date_filter = request.GET.get('date')
     if date_filter == 'today':
         today = timezone.localtime(timezone.now()).date()
-        transactions = transactions.filter(transaction_date__date=today)
+        transactions_list = transactions_list.filter(transaction_date__date=today)
 
-    # 🔍 FILTER: Transaction Type (e.g., ?type=CASH,CREDIT)
     type_filter = request.GET.get('type')
     if type_filter:
         types = type_filter.split(',')
-        transactions = transactions.filter(transaction_type__in=types)
+        transactions_list = transactions_list.filter(transaction_type__in=types)
 
-    return render(request, 'sales/transaction_list.html', {'transactions': transactions})
+    # 3. Apply Pagination (10 items per page)
+    page = request.GET.get('page', 1)
+    paginator = Paginator(transactions_list, 10) # Show 10 transactions per page
+
+    try:
+        transactions = paginator.page(page)
+    except PageNotAnInteger:
+        transactions = paginator.page(1)
+    except EmptyPage:
+        transactions = paginator.page(paginator.num_pages)
+
+    return render(request, 'sales/transaction_list.html', {
+        'transactions': transactions # Now this is a 'Page' object, not just a list
+    })
 
 @login_required
 def transaction_detail(request, transaction_id):
