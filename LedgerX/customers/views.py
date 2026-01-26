@@ -2,9 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Q  # 🟢 Added Q
-from django.core.paginator import Paginator # 🟢 Added Paginator
-
+from django.db.models import Sum
 from .models import Customer
 from sales.models import Transaction
 from qr.models import QRToken
@@ -13,32 +11,25 @@ from qr.models import QRToken
 # Create your views here.
 @login_required
 def customer_list(request):
+    """
+    Shows all active customers.
+    Fetched ALL at once to allow instant Client-Side Search/Pagination.
+    """
     shop = request.user.shop
-    search_query = request.GET.get('search', '')
 
-    # 1. Get Base Data
-    customers_list = Customer.objects.filter(shop=shop, is_active=True).order_by('name')
-
-    # 2. Filter if Search exists
-    if search_query:
-        customers_list = customers_list.filter(
-            Q(name__icontains=search_query) | 
-            Q(mobile__icontains=search_query)
-        )
-
-    # 3. Paginate (10 items per page)
-    paginator = Paginator(customers_list, 10)
-    page_number = request.GET.get('page')
-    customers = paginator.get_page(page_number)
+    # 🟢 Get ALL active customers
+    customers = Customer.objects.filter(
+        shop=shop,
+        is_active=True
+    ).order_by('name')
 
     return render(
         request,
         'customers/customer_list.html',
-        {
-            'customers': customers,
-            'search_query': search_query
-        }
+        {'customers': customers}
     )
+
+
 @login_required
 def customer_add(request):
     """
@@ -168,3 +159,48 @@ def customer_deactivate(request, customer_id):
     messages.info(request, 'Customer deactivated (history preserved)')
     return redirect('customer_list')
 
+
+@login_required
+def customer_deactivated_list(request):
+    """
+    Shows a list of inactive customers.
+    Fetched ALL at once for client-side search/pagination.
+    """
+    shop = request.user.shop
+    
+    # 🟢 Get ALL deactivated customers (No server pagination)
+    customers = Customer.objects.filter(
+        shop=shop,
+        is_active=False
+    ).order_by('name')
+
+    return render(
+        request,
+        'customers/customer_deactivated_list.html',
+        {'customers': customers}
+    )
+
+@login_required
+def customer_reactivate(request, customer_id):
+    """
+    Restores a deactivated customer.
+    """
+    shop = request.user.shop
+    customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+    customer.is_active = True
+    customer.save()
+
+    messages.success(request, f'Customer "{customer.name}" restored successfully.')
+    return redirect('customer_list')
+    """
+    Restores a deactivated customer.
+    """
+    shop = request.user.shop
+    customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+    customer.is_active = True
+    customer.save()
+
+    messages.success(request, f'Customer "{customer.name}" reactivated successfully.')
+    return redirect('customer_list')
