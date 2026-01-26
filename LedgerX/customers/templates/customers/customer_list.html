@@ -1,43 +1,210 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Customers | LedgerX</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
+{% block title %}Customers | LedgerX{% endblock %}
 
-<h2>Customers</h2>
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-0">Customer Directory</h2>
+            <p class="text-muted small mb-0">Manage your shop's credit relationships.</p>
+        </div>
+        <a href="{% url 'customer_add' %}" class="btn btn-primary shadow-sm rounded-pill px-4 fw-bold">
+            <span class="me-1">+</span> Add Customer
+        </a>
+    </div>
 
-<p>
-    <a href="{% url 'customer_add' %}">+ Add Customer</a> |
-    <a href="{% url 'dashboard' %}">Dashboard</a>
-</p>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-2 animate__animated animate__fadeInUp">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-0 ps-3">🔍</span>
+            <input 
+                type="text" 
+                id="searchInput"
+                class="form-control border-0 shadow-none" 
+                placeholder="Search by name or mobile number..." 
+                value="{{ search_query }}"
+                autocomplete="off"
+            >
+            <button class="btn btn-light rounded-pill m-1 d-none" id="clearSearchBtn" onclick="clearSearch()">✕ Clear</button>
+        </div>
+    </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Name</th>
-        <th>Mobile</th>
-        <th>Actions</th>
-    </tr>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">NAME</th>
+                        <th class="py-3 border-0">MOBILE</th>
+                        <th class="py-3 border-0">JOINED ON</th>
+                        <th class="text-end pe-4 py-3 border-0">ACTIONS</th>
+                    </tr>
+                </thead>
+                
+                <tbody id="customerTableBody">
+                    {% for customer in customers %}
+<tr style="cursor: pointer;" onclick="window.location='{% url 'customer_detail' customer.id %}'">
+    
+    <td class="ps-4 py-3 border-0">
+        <div class="d-flex align-items-center">
+            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" 
+                 style="width: 40px; height: 40px;">
+                {{ customer.name|slice:":1"|upper }}
+            </div>
+            <span class="fw-bold text-dark">{{ customer.name }}</span>
+        </div>
+    </td>
 
-    {% for customer in customers %}
-    <tr>
-        <td>{{ customer.name }}</td>
-        <td>{{ customer.mobile }}</td>
-        <td>
-            <a href="{% url 'customer_detail' customer.id %}">Ledger</a> |
-            <a href="{% url 'customer_edit' customer.id %}">Edit</a> |
-            <a href="{% url 'customer_deactivate' customer.id %}"
-               onclick="return confirm('Deactivate this customer?');">
-               Deactivate
-            </a>
-        </td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="3">No customers added yet</td>
-    </tr>
-    {% endfor %}
-</table>
+    <td class="border-0 text-muted">
+        {{ customer.mobile }}
+    </td>
 
-</body>
-</html>
+    <td class="border-0 text-muted small">
+        {{ customer.created_at|date:"d M Y" }}
+    </td>
+
+    <td class="text-end pe-4 border-0" onclick="event.stopPropagation();">
+        <a href="{% url 'customer_detail' customer.id %}" class="btn btn-sm btn-outline-emerald rounded-pill px-3 me-2 fw-bold">
+            View Ledger
+        </a>
+        <a href="{% url 'customer_edit' customer.id %}" class="btn btn-sm btn-light border text-muted rounded-pill px-3" title="Edit">
+            ✏️
+        </a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="4" class="text-center py-5 border-0">
+        <div class="mb-3 display-1 opacity-25">👥</div>
+        <h5 class="fw-bold text-muted">No customers found</h5>
+        {% if search_query %}
+            <p class="text-muted small">No match for "{{ search_query }}"</p>
+            <button onclick="clearSearch()" class="btn btn-outline-dark rounded-pill px-4 mt-2">Clear Search</button>
+        {% else %}
+            <p class="text-muted small">Add your first customer to start tracking credit.</p>
+            <a href="{% url 'customer_add' %}" class="btn btn-outline-primary rounded-pill px-4 mt-2">Add Now</a>
+        {% endif %}
+    </td>
+</tr>
+{% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div id="paginationContainer" class="card-footer bg-white border-0 py-3">
+            {% if customers.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center mb-0">
+                    {% if customers.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link rounded-start-pill border-end-0 text-dark fw-bold" 
+                           href="#" onclick="fetchPage({{ customers.previous_page_number }}); return false;">
+                           ← Prev
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link rounded-start-pill border-end-0 text-muted">← Prev</span>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item disabled">
+                        <span class="page-link border-start-0 border-end-0 text-muted bg-light">
+                            Page {{ customers.number }} of {{ customers.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if customers.has_next %}
+                    <li class="page-item">
+                        <a class="page-link rounded-end-pill border-start-0 text-dark fw-bold" 
+                           href="#" onclick="fetchPage({{ customers.next_page_number }}); return false;">
+                           Next →
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link rounded-end-pill border-start-0 text-muted">Next →</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-outline-emerald { color: #10b981; border-color: #10b981; }
+    .btn-outline-emerald:hover { background-color: #10b981; color: white; }
+    .table-hover tbody tr:hover { background-color: #f8f9fa; }
+</style>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const clearBtn = document.getElementById('clearSearchBtn');
+    let debounceTimer;
+
+    // 1. Listen for typing
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        // Toggle Clear Button
+        clearBtn.classList.toggle('d-none', query === '');
+
+        // Debounce (Wait 400ms after typing stops)
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            performAjax(query, 1); // Reset to page 1 on new search
+        }, 400);
+    });
+
+    // 2. Handle Pagination Clicks
+    function fetchPage(pageNumber) {
+        const query = searchInput.value.trim();
+        performAjax(query, pageNumber);
+    }
+
+    // 3. Clear Search
+    function clearSearch() {
+        searchInput.value = '';
+        clearBtn.classList.add('d-none');
+        performAjax('', 1);
+        searchInput.focus();
+    }
+
+    // 4. Core AJAX Function (Fetch & Swap)
+    function performAjax(query, page) {
+        // Construct URL
+        const url = new URL(window.location.href);
+        url.searchParams.set('search', query);
+        url.searchParams.set('page', page);
+
+        // Fetch data
+        fetch(url)
+            .then(response => response.text())
+            .then(html => {
+                // Parse the returned HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+
+                // A. Swap Table Body
+                const newBody = doc.getElementById('customerTableBody');
+                if (newBody) {
+                    document.getElementById('customerTableBody').innerHTML = newBody.innerHTML;
+                }
+
+                // B. Swap Pagination
+                const newPagination = doc.getElementById('paginationContainer');
+                const currentPagination = document.getElementById('paginationContainer');
+                if (newPagination && currentPagination) {
+                    currentPagination.innerHTML = newPagination.innerHTML;
+                }
+
+                // C. Update URL without reloading (Browser History)
+                window.history.pushState({}, '', url);
+            })
+            .catch(err => console.error('Search failed:', err));
+    }
+</script>
+
+{% endblock %}

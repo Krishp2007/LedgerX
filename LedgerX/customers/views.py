@@ -2,7 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum
+from django.db.models import Sum, Q  # 🟢 Added Q
+from django.core.paginator import Paginator # 🟢 Added Paginator
 
 from .models import Customer
 from sales.models import Transaction
@@ -12,24 +13,32 @@ from qr.models import QRToken
 # Create your views here.
 @login_required
 def customer_list(request):
-    """
-    Shows all active credit customers for the logged-in shop.
-    """
-
     shop = request.user.shop
+    search_query = request.GET.get('search', '')
 
-    customers = Customer.objects.filter(
-        shop=shop,
-        is_active=True
-    ).order_by('name')
+    # 1. Get Base Data
+    customers_list = Customer.objects.filter(shop=shop, is_active=True).order_by('name')
+
+    # 2. Filter if Search exists
+    if search_query:
+        customers_list = customers_list.filter(
+            Q(name__icontains=search_query) | 
+            Q(mobile__icontains=search_query)
+        )
+
+    # 3. Paginate (10 items per page)
+    paginator = Paginator(customers_list, 10)
+    page_number = request.GET.get('page')
+    customers = paginator.get_page(page_number)
 
     return render(
         request,
         'customers/customer_list.html',
-        {'customers': customers}
+        {
+            'customers': customers,
+            'search_query': search_query
+        }
     )
-
-
 @login_required
 def customer_add(request):
     """
