@@ -10,23 +10,32 @@ from .models import Product
 @login_required
 def product_list(request):
     """
-    Shows all active products for the logged-in shopkeeper.
+    Shows active products with STOCK > 0.
     """
-
-    # Get the shop of the logged-in user
     shop = request.user.shop
-
-    # Fetch only this shop's active products
+    # 🟢 Filter: stock_quantity__gt=0 (Greater than 0)
     products = Product.objects.filter(
         shop=shop,
-        is_active=True
+        is_active=True,
+        stock_quantity__gt=0 
     ).order_by('name')
 
-    return render(
-        request,
-        'products/product_list.html',
-        {'products': products}
-    )
+    return render(request, 'products/product_list.html', {'products': products})
+
+@login_required
+def product_out_of_stock(request):
+    """
+    Shows active products with STOCK == 0.
+    """
+    shop = request.user.shop
+    # 🟢 Filter: stock_quantity=0
+    products = Product.objects.filter(
+        shop=shop,
+        is_active=True,
+        stock_quantity=0
+    ).order_by('name')
+
+    return render(request, 'products/product_out_of_stock.html', {'products': products})
 
 
 @login_required

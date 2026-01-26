@@ -1,0 +1,132 @@
+{% extends 'base_public.html' %}
+{% block title %}Out of Stock | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-0 text-danger">Out of Stock Items</h2>
+            <p class="text-muted small mb-0">Products needing immediate restocking.</p>
+        </div>
+        <a href="{% url 'product_list' %}" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+            ← Back to Inventory
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-2 animate__animated animate__fadeInUp">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-0 ps-3">🔍</span>
+            <input 
+                type="text" 
+                id="searchInput"
+                class="form-control border-0 shadow-none" 
+                placeholder="Search out of stock items..." 
+                autocomplete="off"
+            >
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="bg-light text-muted small uppercase">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">Product</th>
+                        <th class="py-3 border-0">Price</th>
+                        <th class="py-3 border-0">Status</th>
+                        <th class="text-end pe-4 py-3 border-0">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr class="product-row" style="cursor: pointer;" onclick="window.location='{% url 'product_detail' product.id %}'">
+                        <td class="ps-4 py-3 border-0">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" alt="img" class="rounded-3 border grayscale" style="width: 48px; height: 48px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-light rounded-3 border d-flex align-items-center justify-content-center text-muted" style="width: 48px; height: 48px;">
+                                            <i class="bi bi-box-seam fs-5"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-muted search-name">{{ product.name }}</div>
+                                    <div class="x-small text-muted search-category">{{ product.category|default:"General" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="border-0 text-muted">₹{{ product.default_price }}</td>
+                        <td class="border-0">
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">
+                                Stock: 0
+                            </span>
+                        </td>
+                        <td class="text-end pe-4 border-0" onclick="event.stopPropagation();">
+                            <a href="{% url 'product_edit' product.id %}" class="btn btn-sm btn-success shadow-sm rounded-pill px-3 fw-bold">
+                                ↻ Restock
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="emptyDbRow">
+                        <td colspan="4" class="text-center py-5 border-0">
+                            <div class="mb-3 display-1 opacity-25">✅</div>
+                            <h5 class="fw-bold text-muted">No Stock Alerts</h5>
+                            <p class="text-muted small">All your active products are in stock.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr id="noDataRow" style="display: none;">
+                        <td colspan="4" class="text-center py-5 border-0">
+                            <div class="mb-3 display-1 opacity-25">🔍</div>
+                            <h5 class="fw-bold text-muted">No products found</h5>
+                            <button onclick="document.getElementById('searchInput').value=''; document.getElementById('searchInput').dispatchEvent(new Event('input'));" class="btn btn-outline-dark rounded-pill px-4 mt-2">Clear Search</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .grayscale { filter: grayscale(100%); opacity: 0.7; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("searchInput");
+    const rows = document.querySelectorAll(".product-row");
+    const noDataRow = document.getElementById("noDataRow");
+    const emptyDbRow = document.getElementById("emptyDbRow");
+
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        let hasMatches = false;
+
+        rows.forEach(row => {
+            const name = row.querySelector(".search-name").innerText.toLowerCase();
+            const category = row.querySelector(".search-category").innerText.toLowerCase();
+            
+            if (name.includes(query) || category.includes(query)) {
+                row.style.display = ""; // Show
+                hasMatches = true;
+            } else {
+                row.style.display = "none"; // Hide
+            }
+        });
+
+        // Show "No Results" only if we aren't already empty
+        if (!hasMatches && !emptyDbRow) {
+            noDataRow.style.display = "table-row";
+        } else {
+            noDataRow.style.display = "none";
+        }
+    });
+});
+</script>
+{% endblock %}
