@@ -6,16 +6,16 @@ function animateCount(el, start, end, duration = 1500) {
         if (!startTime) startTime = currentTime;
         const progress = Math.min((currentTime - startTime) / duration, 1);
         
-        // Easing function for smoother stop
-        const easeOutQuad = (t) => t * (2 - t);
+        // Calculate current number
         const value = Math.floor(progress * (end - start) + start);
         
-        el.textContent = "₹" + value.toLocaleString();
+        // 🟢 JUST THE NUMBER (No prefix needed)
+        el.textContent = value.toLocaleString();
 
         if (progress < 1) {
             requestAnimationFrame(update);
         } else {
-            el.textContent = "₹" + end.toLocaleString(); // Ensure final value is exact
+            el.textContent = end.toLocaleString(); 
         }
     }
     requestAnimationFrame(update);
@@ -24,10 +24,8 @@ function animateCount(el, start, end, duration = 1500) {
 /* ===== Initialize Stats on Load ===== */
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".stat-value").forEach(el => {
-        // Get value from data-attribute (sanitized)
         const rawValue = el.getAttribute("data-value") || "0";
-        // Handle float values if necessary, but typically dashboard shows ints/floats
-        const value = parseFloat(rawValue);
+        const value = parseFloat(rawValue.replace(/,/g, ''));
         animateCount(el, 0, value);
     });
 });

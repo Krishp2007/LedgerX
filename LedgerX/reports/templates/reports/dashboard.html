@@ -31,9 +31,9 @@
             <a href="{% url 'transaction_list' %}?date=today&type=CASH,CREDIT" class="text-decoration-none text-dark d-block h-100 hover-scale">
                 <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm stat-card">
                     <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Sales</p>
-                    <h3 class="fw-bold stat-value text-emerald" data-value="{{ todays_sales }}">
-                        ₹{{ todays_sales }}
-                    </h3>
+                    <h3 class="fw-bold text-emerald">
+    ₹<span class="stat-value" data-value="{{ todays_sales }}">{{ todays_sales }}</span>
+</h3>
                     <small class="text-muted x-small">(Invoice Value)</small>
                 </div>
             </a>
@@ -43,34 +43,34 @@
             <a href="{% url 'transaction_list' %}?date=today&type=PAYMENT,CASH" class="text-decoration-none text-dark d-block h-100 hover-scale">
                 <div class="card p-4 text-center border-bottom border-success border-4 h-100 shadow-sm stat-card">
                     <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Inflow</p>
-                    <h3 class="fw-bold stat-value text-success" data-value="{{ todays_payments }}">
-                        ₹{{ todays_payments }}
-                    </h3>
+                    <h3 class="fw-bold text-success">
+    ₹<span class="stat-value" data-value="{{ todays_payments }}">{{ todays_payments }}</span>
+</h3>
                     <small class="text-muted x-small">(Cash + Received)</small>
                 </div>
             </a>
         </div>
         
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="{% url 'customer_report' %}?type=outstanding" class="text-decoration-none text-dark d-block h-100 hover-scale">
+            <a href="{% url 'product_out_of_stock' %}" class="text-decoration-none text-dark d-block h-100 hover-scale">
                 <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm stat-card">
-                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Outstanding</p>
-                    <h3 class="fw-bold stat-value text-danger" data-value="{{ total_outstanding }}">
-                        ₹{{ total_outstanding }}
-                    </h3>
-                    <small class="text-muted x-small">(To Collect)</small>
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Low Stock</p>
+                    <h3 class="fw-bold text-danger">
+    <span class="stat-value" data-value="{{ low_stock_count }}">{{ low_stock_count }}</span>
+</h3>
+                    <small class="text-muted x-small">(Items &lt; 10)</small>
                 </div>
             </a>
         </div>
 
         <div class="col-12 col-md-6 col-xl-3">
-            <a href="{% url 'customer_report' %}?type=advance" class="text-decoration-none text-dark d-block h-100 hover-scale">
-                <div class="card p-4 text-center border-bottom border-warning border-4 h-100 shadow-sm stat-card">
-                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Advance Rec.</p>
-                    <h3 class="fw-bold stat-value text-warning" data-value="{{ total_advance }}">
-                        ₹{{ total_advance }}
-                    </h3>
-                    <small class="text-muted x-small">(Pre-paid)</small>
+            <a href="{% url 'customer_list' %}" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-primary border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Active Customers</p>
+                    <h3 class="fw-bold text-primary">
+    <span class="stat-value" data-value="{{ total_customers }}">{{ total_customers }}</span>
+</h3>
+                    <small class="text-muted x-small">(Total Profiles)</small>
                 </div>
             </a>
         </div>

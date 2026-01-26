@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.utils import timezone
 
+from products.models import Product  # 🟢 Added Import
+
 from sales.models import Transaction, TransactionItem
 from customers.models import Customer
 
@@ -18,6 +20,8 @@ from operator import attrgetter
 def dashboard(request):
     """
     Main dashboard: Summary Cards + Recent Activity.
+    Optimized to show actionable metrics (Low Stock, Active Customers) 
+    instead of heavy financial calculations.
     """
     shop = request.user.shop
     today = timezone.localtime(timezone.now()).date()
@@ -30,28 +34,25 @@ def dashboard(request):
     ).aggregate(total=Sum('total_amount'))['total'] or 0
 
     # 2. Today's Inflow (Money In: PAYMENT + CASH)
-    # This matches your UI description: "Cash + Received"
     todays_payments = Transaction.objects.filter(
         shop=shop,
         transaction_type__in=['PAYMENT', 'CASH'],
         transaction_date__date=today
     ).aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # 3. Calculate Outstanding & Advance
-    customers = Customer.objects.filter(shop=shop, is_active=True)
-    total_outstanding = 0
-    total_advance = 0
-
-    for customer in customers:
-        # Calculate Balance: Credit - Payment
-        credit = Transaction.objects.filter(customer=customer, transaction_type='CREDIT').aggregate(total=Sum('total_amount'))['total'] or 0
-        payment = Transaction.objects.filter(customer=customer, transaction_type='PAYMENT').aggregate(total=Sum('total_amount'))['total'] or 0
-        balance = credit - payment
-
-        if balance > 0:
-            total_outstanding += balance  # Money they owe you
-        elif balance < 0:
-            total_advance += abs(balance) # Money you owe them (Advance)
+    # 3. 🟢 NEW METRICS (Actionable & Fast)
+    
+    # Low Stock: Count products with less than 10 quantity
+    low_stock_count = Product.objects.filter(
+        shop=shop, 
+        stock_quantity__lt=10
+    ).count()
+    
+    # Total Active Customers
+    total_customers = Customer.objects.filter(
+        shop=shop, 
+        is_active=True
+    ).count()
 
     # 4. Recent Activity (Transactions + New Customers mixed)
     recent_txns = Transaction.objects.filter(shop=shop).select_related('customer').order_by('-created_at')[:5]
@@ -70,12 +71,11 @@ def dashboard(request):
         {
             'todays_sales': todays_sales,
             'todays_payments': todays_payments,
-            'total_outstanding': total_outstanding,
-            'total_advance': total_advance,  # 🟢 This variable was missing!
+            'low_stock_count': low_stock_count,      # 🟢 New Variable
+            'total_customers': total_customers,      # 🟢 New Variable
             'recent_activities': recent_activities,
         }
     )
-
 
 @login_required
 def customer_report(request):
