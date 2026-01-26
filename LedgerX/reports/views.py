@@ -119,7 +119,7 @@ def sales_report(request):
     transactions = Transaction.objects.filter(
         shop=shop,
         transaction_type__in=['CASH', 'CREDIT']
-    )
+    ).order_by('-transaction_date')
 
     if start_date and end_date:
         transactions = transactions.filter(
@@ -144,11 +144,6 @@ def sales_report(request):
 
 @login_required
 def product_report(request):
-    """
-    Product-wise sales report.
-    Shows how much quantity of each product is sold.
-    """
-
     shop = request.user.shop
     start_date = request.GET.get('start_date')
     end_date = request.GET.get('end_date')
@@ -163,8 +158,10 @@ def product_report(request):
             transaction__transaction_date__date__range=[start_date, end_date]
         )
 
+    # 🟢 CHANGED: Added 'product__id' to values() so we can link to details
     report = items.values(
-        'product__name'
+        'product__name', 
+        'product__id' 
     ).annotate(
         total_quantity=Sum('quantity')
     ).order_by('-total_quantity')
@@ -178,7 +175,6 @@ def product_report(request):
             'end_date': end_date
         }
     )
-
 
 
 @login_required
