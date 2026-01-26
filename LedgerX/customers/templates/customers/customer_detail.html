@@ -1,96 +1,245 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Customer Ledger</title>
+{% extends 'base_public.html' %}
+{% block title %}{{ customer.name }} | LedgerX{% endblock %}
 
-    <!-- Bootstrap CDN -->
-    <link
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-        rel="stylesheet"
-    >
-  </head>
-  <body class="m-5">
-    <h2>{{ customer.name }}</h2>
-    <p><strong>Mobile:</strong> {{ customer.mobile }}</p>
+{% block content %}
+<div class="container py-4">
+    
+    <div class="row g-4 mb-5 animate__animated animate__fadeIn align-items-center">
+        <div class="col-12 col-md-8">
+            <div class="d-flex align-items-center gap-3 mb-1">
+                <h2 class="fw-bold mb-0">{{ customer.name }}</h2>
+                {% if customer.is_active %}
+                    <span class="badge bg-emerald-subtle text-dark border border-emerald rounded-pill px-3">Active</span>
+                {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3">Inactive</span>
+                {% endif %}
+            </div>
+            <p class="text-muted mb-0">
+                <i class="bi bi-telephone me-1"></i> {{ customer.mobile }} 
+                <span class="mx-2">|</span> 
+                <span class="text-muted small">Joined {{ customer.created_at|date:"M Y" }}</span>
+            </p>
+        </div>
 
-    <h3>Outstanding Balance: ₹{{ outstanding }}</h3>
-
-    <hr />
-
-    <button onclick="toggleQR()" class="btn btn-primary ">
-      📷 Show QR Code
-    </button>
-
-    <div id="qr-box" style="display: none; margin-top: 20px">
-      <img
-        src="{% url 'qr_image' customer.id %}"
-        alt="Customer QR Code"
-        style="width: 250px; border: 1px solid #ccc"
-      />
-
-      <br /><br />
-
-      <a
-        href="{% url 'qr_image' customer.id %}"
-        download="customer_ledger_qr.png"
-        class="btn btn-success"
-      >
-        ⬇ Download PNG
-      </a>
-
-      <button onclick="window.print()" class="btn btn-secondary">
-        🖨 Print
-      </button>
+        <div class="col-12 col-md-4 text-md-end">
+            {% if outstanding > 0 %}
+                <div class="card p-3 border-0 shadow-sm border-start border-danger border-4 d-inline-block text-start w-100 w-md-auto" style="min-width: 220px;">
+                    <p class="text-muted x-small fw-bold mb-1 uppercase tracking-wider">TOTAL OUTSTANDING</p>
+                    <h3 class="fw-bold text-danger mb-0">₹{{ outstanding }}</h3>
+                    <small class="text-danger-emphasis x-small">● Pending Payment</small>
+                </div>
+            {% elif outstanding < 0 %}
+                <div class="card p-3 border-0 shadow-sm border-start border-success border-4 d-inline-block text-start w-100 w-md-auto" style="min-width: 220px;">
+                    <p class="text-muted x-small fw-bold mb-1 uppercase tracking-wider">ADVANCE BALANCE</p>
+                    <h3 class="fw-bold text-success mb-0">₹{{ outstanding|stringformat:"+d"|slice:"1:" }}</h3> 
+                    <small class="text-success-emphasis x-small">● Pre-paid Amount</small>
+                </div>
+            {% else %}
+                <div class="card p-3 border-0 shadow-sm border-start border-secondary border-4 d-inline-block text-start w-100 w-md-auto" style="min-width: 220px;">
+                    <p class="text-muted x-small fw-bold mb-1 uppercase tracking-wider">NET BALANCE</p>
+                    <h3 class="fw-bold text-dark mb-0">₹0.00</h3>
+                    <small class="text-muted x-small">● All Settled</small>
+                </div>
+            {% endif %}
+        </div>
     </div>
 
-    <hr />
-
-    <p>
-      <a href="{% url 'add_payment_for_customer' customer.id %}">
-        + Add Payment
-      </a>
-    </p>
-
-    <table border="1" cellpadding="8">
-      <tr>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Amount</th>
-        <th>Details</th>
-      </tr>
-
-      {% for tx in transactions %}
-      <tr>
-        <td>{{ tx.transaction_date|date:"d M Y" }}</td>
-        <td>{{ tx.transaction_type }}</td>
-        <td>₹{{ tx.total_amount }}</td>
-        <td>
-          <a href="{% url 'transaction_detail' tx.id %}">View</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="4">No transactions found</td>
-      </tr>
-      {% endfor %}
-    </table>
-
-    <p>
-      <a href="{% url 'customer_list' %}">Back to Customers</a>
-    </p>
-
-
-    
-    <script>
-      function toggleQR() {
-        const box = document.getElementById("qr-box");
-        if (box.style.display === "none") {
-            box.style.display = 'block'
-        } else {
-            box.style.display = 'none'
-        }
+    <div class="row g-4">
         
-      }
-    </script>
-  </body>
-</html>
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden mb-4 rounded-4" style="min-height: 500px;">
+                <div class="card-header bg-white py-3 px-4 border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h5 class="fw-bold mb-0 text-charcoal">Transaction Ledger</h5>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'add_payment_for_customer' customer.id %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm">
+                            + Receive Payment
+                        </a>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-nowrap" id="ledgerTable">
+                        <thead class="bg-light text-muted small">
+                            <tr>
+                                <th class="ps-4 py-3 border-0">DATE</th>
+                                <th class="py-3 border-0">TYPE</th>
+                                <th class="text-end pe-4 py-3 border-0">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledgerBody">
+                            {% for tx in transactions %}
+                            <tr class="ledger-row" style="cursor: pointer;" onclick="window.location='{% url 'transaction_detail' tx.id %}'">
+                                <td class="ps-4 small fw-bold text-dark border-0">
+                                    {{ tx.transaction_date|date:"d M Y" }}
+                                    <br>
+                                    <span class="text-muted fw-normal xx-small">{{ tx.transaction_date|time:"h:i A" }}</span>
+                                </td>
+                                <td class="border-0">
+                                    {% if tx.transaction_type == 'CREDIT' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger px-3 rounded-pill">CREDIT</span>
+                                    {% elif tx.transaction_type == 'PAYMENT' %}
+                                        <span class="badge bg-success-subtle text-success border border-success px-3 rounded-pill">PAYMENT</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-dark border px-3 rounded-pill">CASH</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4 border-0">
+                                    {% if tx.transaction_type == 'PAYMENT' %}
+                                        <span class="text-success fw-bold">+ ₹{{ tx.total_amount }}</span>
+                                    {% else %}
+                                        <span class="text-dark fw-bold">₹{{ tx.total_amount }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr class="no-data">
+                                <td colspan="3" class="text-center py-5 text-muted border-0">
+                                    <div class="fs-1 mb-2 opacity-25">📒</div>
+                                    <p class="small mb-0">No transactions recorded yet.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center" id="paginationControls">
+                    <button class="btn btn-sm btn-light rounded-circle mx-1" id="prevBtn" onclick="changePage(-1)">←</button>
+                    <span class="mx-3 small fw-bold text-muted align-self-center" id="pageIndicator">Page 1</span>
+                    <button class="btn btn-sm btn-light rounded-circle mx-1" id="nextBtn" onclick="changePage(1)">→</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            
+            <div class="card border-0 shadow-sm p-4 text-center mb-4 rounded-4">
+                <h6 class="fw-bold text-charcoal mb-3">Customer Transparency</h6>
+                
+                <div class="mb-3 d-flex justify-content-center">
+                    <div class="p-2 border rounded-4 bg-white d-inline-block shadow-sm">
+                        <img src="{% url 'qr_image' customer.id %}" 
+                             alt="Customer QR" 
+                             class="img-fluid rounded-3" 
+                             style="width: 140px; height: 140px;">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-4 mb-3">
+                    <p class="xx-small text-muted mb-0">
+                        Ask {{ customer.name }} to scan this QR code to view their live ledger status instantly.
+                    </p>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center border rounded-pill px-3 py-2 bg-white">
+                    <span class="text-muted xx-small uppercase fw-bold">Token</span>
+                    <code class="text-emerald fw-bold small">{{ qr_token.secure_token|truncatechars:12 }}</code>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm p-4 rounded-4">
+                <h6 class="fw-bold text-charcoal mb-3">Account Actions</h6>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'customer_edit' customer.id %}" class="btn btn-outline-dark rounded-pill">
+                        ✏️ Edit Details
+                    </a>
+                    
+                    <button class="btn btn-light text-danger border-0 rounded-pill small" 
+                            data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                        🚫 Deactivate Account
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger">Deactivate Account?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4 px-4">
+        <div class="fs-1 mb-3">⚠️</div>
+        <p class="text-muted mb-0">Are you sure you want to deactivate <strong class="text-dark">{{ customer.name }}</strong>?</p>
+        <p class="small text-muted mt-1">Their history will be preserved in the archives.</p>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4 d-flex flex-column-reverse flex-sm-row justify-content-center gap-2">
+        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+        <a href="{% url 'customer_deactivate' customer.id %}" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm w-100 w-sm-auto">Yes, Deactivate</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+    .xx-small { font-size: 0.75rem; }
+    .uppercase { text-transform: uppercase; letter-spacing: 1px; }
+    .text-charcoal { color: #333; }
+    
+    /* Hover effect */
+    .ledger-row:hover { background-color: #f8f9fa; }
+    
+    /* Hide rows by default, JS will show them */
+    .ledger-row { display: none; }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rows = document.querySelectorAll(".ledger-row");
+        const rowsPerPage = 7;
+        let currentPage = 1;
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const pageIndicator = document.getElementById("pageIndicator");
+        const controls = document.getElementById("paginationControls");
+
+        // If no data, hide controls
+        if (rows.length === 0) {
+            controls.style.display = 'none';
+            return;
+        }
+
+        function showPage(page) {
+            // Validate page bounds
+            if (page < 1) page = 1;
+            if (page > totalPages) page = totalPages;
+            currentPage = page;
+
+            // Calculate range
+            const start = (page - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+
+            // Toggle Visibility
+            rows.forEach((row, index) => {
+                if (index >= start && index < end) {
+                    row.style.display = "table-row";
+                    // Add standard animation class for smooth feel
+                    row.classList.add("animate__animated", "animate__fadeIn");
+                } else {
+                    row.style.display = "none";
+                    row.classList.remove("animate__animated", "animate__fadeIn");
+                }
+            });
+
+            // Update UI Controls
+            pageIndicator.innerText = `Page ${currentPage} of ${totalPages}`;
+            prevBtn.disabled = currentPage === 1;
+            nextBtn.disabled = currentPage === totalPages;
+        }
+
+        // Expose function to global scope for buttons
+        window.changePage = function(direction) {
+            showPage(currentPage + direction);
+        };
+
+        // Initialize
+        showPage(1);
+    });
+</script>
+{% endblock %}

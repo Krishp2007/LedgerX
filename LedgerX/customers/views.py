@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
-
 from .models import Customer
 from sales.models import Transaction
 from qr.models import QRToken
@@ -13,11 +12,12 @@ from qr.models import QRToken
 @login_required
 def customer_list(request):
     """
-    Shows all active credit customers for the logged-in shop.
+    Shows all active customers.
+    Fetched ALL at once to allow instant Client-Side Search/Pagination.
     """
-
     shop = request.user.shop
 
+    # 🟢 Get ALL active customers
     customers = Customer.objects.filter(
         shop=shop,
         is_active=True
@@ -159,3 +159,48 @@ def customer_deactivate(request, customer_id):
     messages.info(request, 'Customer deactivated (history preserved)')
     return redirect('customer_list')
 
+
+@login_required
+def customer_deactivated_list(request):
+    """
+    Shows a list of inactive customers.
+    Fetched ALL at once for client-side search/pagination.
+    """
+    shop = request.user.shop
+    
+    # 🟢 Get ALL deactivated customers (No server pagination)
+    customers = Customer.objects.filter(
+        shop=shop,
+        is_active=False
+    ).order_by('name')
+
+    return render(
+        request,
+        'customers/customer_deactivated_list.html',
+        {'customers': customers}
+    )
+
+@login_required
+def customer_reactivate(request, customer_id):
+    """
+    Restores a deactivated customer.
+    """
+    shop = request.user.shop
+    customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+    customer.is_active = True
+    customer.save()
+
+    messages.success(request, f'Customer "{customer.name}" restored successfully.')
+    return redirect('customer_list')
+    """
+    Restores a deactivated customer.
+    """
+    shop = request.user.shop
+    customer = get_object_or_404(Customer, id=customer_id, shop=shop)
+
+    customer.is_active = True
+    customer.save()
+
+    messages.success(request, f'Customer "{customer.name}" reactivated successfully.')
+    return redirect('customer_list')
