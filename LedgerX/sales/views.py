@@ -248,3 +248,38 @@ def transaction_detail(request, transaction_id):
         {'transaction': transaction_obj}
     )
 
+
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+
+@login_required
+@require_POST
+def ajax_add_customer(request):
+    """
+    Handles Quick Add Customer from Sales Page via AJAX
+    """
+    try:
+        name = request.POST.get('name')
+        mobile = request.POST.get('mobile')
+        shop = request.user.shop
+
+        if not name or not mobile:
+            return JsonResponse({'status': 'error', 'message': 'Name and Mobile required'})
+
+        # Check dupes if needed, or just create
+        customer = Customer.objects.create(
+            shop=shop,
+            name=name,
+            mobile=mobile
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'customer': {
+                'id': customer.id,
+                'name': customer.name,
+                'mobile': customer.mobile
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})

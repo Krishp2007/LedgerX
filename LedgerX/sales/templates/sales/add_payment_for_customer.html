@@ -1,42 +1,136 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Add Payment</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
+{% block title %}Payment: {{ customer.name }} | LedgerX{% endblock %}
 
-<h2>Add Payment</h2>
+{% block content %}
+<style>
+    /* === EMERALD THEME === */
+    body { background-color: #f8f9fa; }
+    
+    .text-emerald { color: #10b981 !important; }
+    .bg-emerald { background-color: #10b981 !important; }
+    
+    .btn-emerald { 
+        background-color: #10b981; 
+        color: white; 
+        border: none; 
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-emerald:hover { 
+        background-color: #059669; 
+        color: white; 
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+    }
 
-<p>
-    <strong>Customer:</strong> {{ customer.name }} <br>
-    <strong>Outstanding Amount:</strong> ₹{{ outstanding }}
-</p>
+    /* === CARDS === */
+    .balance-card {
+        background: linear-gradient(145deg, #1f2937, #111827);
+        color: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Decoration Circle */
+    .balance-card::after {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+    }
 
-<form method="post">
-    {% csrf_token %}
+    .form-card {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        background: white;
+    }
 
-    <label>Payment Amount</label><br>
-    <input
-        type="number"
-        name="amount"
-        step="0.01"
-        min="1"
-        required
-    ><br><br>
+    .form-focus:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+</style>
 
-    <label>Note (optional)</label><br>
-    <input
-        type="text"
-        name="note"
-        placeholder="Cash / UPI / Part payment"
-    ><br><br>
+<div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6 col-lg-5">
+            
+            <div class="card balance-card p-4 mb-4 animate__animated animate__fadeInDown">
+                <div class="d-flex justify-content-between align-items-start position-relative" style="z-index: 1;">
+                    <div>
+                        <p class="small text-white-50 mb-1 text-uppercase tracking-wider fw-bold">Outstanding Balance</p>
+                        <h3 class="fw-bold mb-0 text-white">{{ customer.name }}</h3>
+                        <small class="text-white-50">{{ customer.mobile }}</small>
+                    </div>
+                    <div class="text-end">
+                        <h2 class="fw-bold text-emerald mb-0">₹{{ outstanding }}</h2>
+                        <span class="badge bg-white text-dark bg-opacity-10 border border-secondary rounded-pill x-small">Due</span>
+                    </div>
+                </div>
+            </div>
 
-    <button type="submit">Record Payment</button>
-</form>
+            <div class="card form-card p-4 p-md-5 animate__animated animate__fadeInUp">
+                
+                <h5 class="fw-bold mb-4 text-center">Record Payment</h5>
+                
+                <form method="post" id="paymentForm" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold x-small text-muted text-uppercase tracking-wider mb-2">Amount to Deduct (₹)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0 fw-bold text-muted ps-3">₹</span>
+                            <input type="number" step="0.01" min="1" name="amount" id="amountInput" 
+                                   class="form-control form-control-lg bg-light border-0 shadow-none fw-bold text-emerald fs-4 form-focus" 
+                                   placeholder="0.00" required>
+                        </div>
+                        <div id="amountError" class="text-danger x-small fw-bold mt-2 d-none">
+                            <i class="bi bi-exclamation-circle me-1"></i> Amount must be greater than 0.
+                        </div>
+                    </div>
 
-<p>
-    <a href="{% url 'customer_detail' customer.id %}">Back to Customer</a>
-</p>
+                    <div class="d-grid gap-3">
+                        <button type="submit" class="btn btn-emerald py-3 rounded-pill shadow-sm fw-bold">
+                            <i class="bi bi-check-lg me-1"></i> Update Balance
+                        </button>
+                        <a href="{% url 'customer_detail' customer.id %}" class="btn btn-light rounded-pill text-muted fw-bold small">
+                            Cancel
+                        </a>
+                    </div>
 
-</body>
-</html>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🟢 VALIDATION LOGIC
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        const amountInput = document.getElementById('amountInput');
+        const errorEl = document.getElementById('amountError');
+        const amount = parseFloat(amountInput.value);
+
+        // Reset
+        amountInput.classList.remove('is-invalid');
+        errorEl.classList.add('d-none');
+
+        // Check if empty or negative or zero
+        if (isNaN(amount) || amount <= 0) {
+            e.preventDefault(); // Stop submission
+            amountInput.classList.add('is-invalid');
+            errorEl.innerText = "❌ Amount must be positive (e.g. 100)";
+            errorEl.classList.remove('d-none');
+            amountInput.focus();
+        }
+    });
+</script>
+{% endblock %}
