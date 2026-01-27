@@ -153,4 +153,4 @@ LOGOUT_REDIRECT_URL = '/login/'
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 # ⚠️ IMPORTANT: This email MUST be verified in your Brevo account (Senders & IPs)
-DEFAULT_FROM_EMAIL = "kp1919.com@gmail.com"
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL")

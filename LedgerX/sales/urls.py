@@ -12,4 +12,6 @@ urlpatterns = [
     # Read-only transactions
     path('transactions/', views.transaction_list, name='transaction_list'),
     path('transactions/<int:transaction_id>/', views.transaction_detail, name='transaction_detail'),
+
+    path('ajax-add/', views.ajax_add_customer, name='ajax_add_customer'),
 ]

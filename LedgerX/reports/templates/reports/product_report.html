@@ -1,43 +1,260 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Product Report</title>
-</head>
-<body>
+{% extends 'base_public.html' %}
+{% block title %}Product Sales Report | LedgerX{% endblock %}
 
-<h2>Product Sales Report</h2>
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                <span class="text-primary">📊</span> Product Sales Report
+            </h2>
+            <p class="text-muted small mb-0">
+                Performance ranking based on total units sold.
+            </p>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-white border shadow-sm rounded-pill px-3 fw-bold text-muted transition-hover" data-bs-toggle="modal" data-bs-target="#dateFilterModal">
+                <i class="bi bi-calendar3 me-1"></i> 
+                {% if start_date and end_date %}
+                    Filter Active
+                {% else %}
+                    Filter Date
+                {% endif %}
+            </button>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-dark rounded-pill px-4 fw-bold shadow-sm transition-hover">
+                <i class="bi bi-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
 
-<form method="get">
-    Start Date:
-    <input type="date" name="start_date" value="{{ start_date }}">
-    End Date:
-    <input type="date" name="end_date" value="{{ end_date }}">
-    <button type="submit">Filter</button>
-</form>
+    {% if start_date and end_date %}
+    <div class="alert alert-primary border-0 shadow-sm rounded-4 d-flex align-items-center justify-content-between mb-4 animate__animated animate__fadeIn">
+        <div class="small fw-bold text-primary">
+            <i class="bi bi-funnel-fill me-2"></i>
+            Showing sales from <span class="text-dark">{{ start_date }}</span> to <span class="text-dark">{{ end_date }}</span>
+        </div>
+        <a href="{% url 'product_report' %}" class="btn btn-sm btn-light rounded-pill px-3 fw-bold border">
+            Clear Filter
+        </a>
+    </div>
+    {% endif %}
 
-<br>
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-2 animate__animated animate__fadeInUp">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-0 ps-3">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input 
+                type="text" 
+                id="searchInput"
+                class="form-control border-0 shadow-none" 
+                placeholder="Search product name..." 
+                autocomplete="off"
+            >
+        </div>
+    </div>
 
-<table border="1" cellpadding="8">
-    <tr>
-        <th>Product</th>
-        <th>Total Quantity Sold</th>
-    </tr>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp" style="min-height: 400px;">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover text-nowrap">
+                <thead class="bg-light text-muted small uppercase">
+                    <tr>
+                        <th class="ps-4 py-3 border-0" style="width: 80px;">Rank</th>
+                        <th class="py-3 border-0">Product Name</th>
+                        <th class="text-end pe-4 py-3 border-0">Units Sold</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    {% for item in report %}
+                    <tr class="report-row" style="cursor: pointer;" onclick="window.location='{% url 'product_detail' item.product__id %}'">
+                        
+                        <td class="ps-4 border-0">
+                            {% if forloop.counter == 1 %}
+                                <span class="fs-4">🏆</span>
+                            {% elif forloop.counter == 2 %}
+                                <span class="fs-4">🥈</span>
+                            {% elif forloop.counter == 3 %}
+                                <span class="fs-4">🥉</span>
+                            {% else %}
+                                <span class="badge bg-light text-muted border rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    {{ forloop.counter }}
+                                </span>
+                            {% endif %}
+                        </td>
 
-    {% for row in report %}
-    <tr>
-        <td>{{ row.product__name }}</td>
-        <td>{{ row.total_quantity }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="2">No data available</td>
-    </tr>
-    {% endfor %}
-</table>
+                        <td class="border-0">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center me-3 border border-primary-subtle fw-bold" style="width: 40px; height: 40px;">
+                                    {{ item.product__name|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark search-name">{{ item.product__name }}</div>
+                                </div>
+                            </div>
+                        </td>
 
-<p>
-    <a href="{% url 'reports_home' %}">Back to Reports</a>
-</p>
+                        <td class="text-end pe-4 border-0">
+                            <span class="badge bg-white text-dark border px-3 py-2 rounded-pill fw-bold shadow-sm">
+                                {{ item.total_quantity }} <span class="text-muted fw-normal">Units</span>
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="emptyDbRow">
+                        <td colspan="3" class="text-center py-5 border-0 text-muted">
+                            <div class="mb-2 display-4 opacity-25">📉</div>
+                            <h5 class="fw-bold text-muted">No sales data found</h5>
+                            <p class="small mb-0">Try adjusting the date range or search for a different term.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
 
-</body>
-</html>
+                    <tr id="noDataRow" style="display: none;">
+                        <td colspan="3" class="text-center py-5 border-0">
+                            <div class="mb-2 display-4 opacity-25">🔍</div>
+                            <h5 class="fw-bold text-muted">No matching products</h5>
+                            <button onclick="clearSearch()" class="btn btn-sm btn-outline-dark rounded-pill px-3 mt-2">Clear Search</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center" id="paginationControls">
+            <button class="btn btn-sm btn-light rounded-circle mx-1 border shadow-sm" id="prevBtn" style="width: 32px; height: 32px;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="mx-3 small fw-bold text-muted align-self-center" id="pageIndicator">Page 1</span>
+            <button class="btn btn-sm btn-light rounded-circle mx-1 border shadow-sm" id="nextBtn" style="width: 32px; height: 32px;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="dateFilterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold">Filter by Date</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="get" action="{% url 'product_report' %}">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">FROM DATE</label>
+                            <input type="date" name="start_date" class="form-control bg-light border-0 shadow-none" value="{{ start_date }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-muted">TO DATE</label>
+                            <input type="date" name="end_date" class="form-control bg-light border-0 shadow-none" value="{{ end_date }}" required>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">
+                                Apply Filter
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary-subtle { background-color: #e0e7ff !important; }
+    .text-primary { color: #4338ca !important; }
+    .border-primary-subtle { border-color: #c7d2fe !important; }
+    
+    /* Row Hover */
+    .report-row:hover { background-color: #f8f9fa; }
+    
+    /* Button Hover */
+    .transition-hover:active { transform: scale(0.98); transition: transform 0.1s; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("searchInput");
+    const rows = Array.from(document.querySelectorAll(".report-row"));
+    const noDataRow = document.getElementById("noDataRow");
+    const emptyDbRow = document.getElementById("emptyDbRow");
+    const controls = document.getElementById("paginationControls");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pageIndicator = document.getElementById("pageIndicator");
+
+    // Config
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    let filteredRows = rows; 
+
+    // 1. Search Logic
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        
+        filteredRows = rows.filter(row => {
+            const name = row.querySelector(".search-name").innerText.toLowerCase();
+            return name.includes(query);
+        });
+
+        currentPage = 1; 
+        renderTable();
+    });
+
+    window.clearSearch = function() {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+    }
+
+    // 2. Render Table
+    function renderTable() {
+        rows.forEach(row => row.style.display = "none");
+        
+        if(emptyDbRow) emptyDbRow.style.display = "none";
+        noDataRow.style.display = "none";
+
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        
+        filteredRows.slice(start, end).forEach(row => {
+            row.style.display = "table-row";
+            row.classList.add("animate__animated", "animate__fadeIn");
+        });
+
+        if (filteredRows.length === 0) {
+            if (rows.length === 0 && emptyDbRow) {
+                emptyDbRow.style.display = "table-row";
+            } else {
+                noDataRow.style.display = "table-row";
+            }
+            controls.style.display = 'none';
+        } else {
+            controls.style.display = totalPages > 1 ? 'flex' : 'none';
+        }
+
+        pageIndicator.innerText = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+    }
+
+    // 3. Pagination Events
+    prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+    nextBtn.onclick = () => { if (currentPage < Math.ceil(filteredRows.length / rowsPerPage)) { currentPage++; renderTable(); } };
+
+    // Initial Check
+    if (rows.length === 0 && emptyDbRow) {
+        controls.style.display = 'none';
+        emptyDbRow.style.display = 'table-row';
+    } else {
+        renderTable();
+    }
+});
+</script>
+{% endblock %}

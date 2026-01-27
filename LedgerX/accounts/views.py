@@ -73,20 +73,33 @@ def is_rate_limited(request, key_name='otp_last_sent'):
     return False
 
 def login_view(request):
-    """
-    Logs user in using Django authentication.
-    """
     if request.method == 'POST':
-        username = request.POST.get('username')
+        # Get the input (could be username OR email)
+        login_input = request.POST.get('username') 
         password = request.POST.get('password')
 
-        user = authenticate(request, username=username, password=password)
+        # 🟢 NEW LOGIC: Check if input looks like an email
+        if '@' in login_input:
+            try:
+                # Try to find the user with this email
+                user_obj = User.objects.get(email__iexact=login_input)
+                # If found, use their actual username for authentication
+                username_to_auth = user_obj.username
+            except User.DoesNotExist:
+                # If email doesn't exist, auth will fail naturally below
+                username_to_auth = None
+        else:
+            # It's a standard username
+            username_to_auth = login_input
+
+        # Authenticate using the resolved username
+        user = authenticate(request, username=username_to_auth, password=password)
 
         if user is not None:
             login(request, user)
             return redirect('dashboard')
 
-        messages.error(request, 'Invalid username or password')
+        messages.error(request, 'Invalid credentials')
         return redirect('login')
 
     return render(request, 'accounts/login.html')
