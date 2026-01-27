@@ -4,7 +4,6 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db import transaction as db_transaction
 from django.db.models import Sum
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger # 🟢 Added Imports
 
 from .models import Transaction, TransactionItem
 from products.models import Product
@@ -194,13 +193,14 @@ def add_payment_for_customer(request, customer_id):
 @login_required
 def transaction_list(request):
     """
-    Shows a LIST of transactions with Pagination (10 per page).
+    Shows a LIST of transactions.
+    Pagination is now handled on the Client Side (JS).
     """
     shop = request.user.shop
-    # 1. Get ALL records first
+    # 1. Get ALL records
     transactions_list = Transaction.objects.filter(shop=shop).order_by('-created_at')
 
-    # 2. Apply Filters
+    # 2. Apply Filters (Date & Type)
     date_filter = request.GET.get('date')
     if date_filter == 'today':
         today = timezone.localtime(timezone.now()).date()
@@ -211,20 +211,11 @@ def transaction_list(request):
         types = type_filter.split(',')
         transactions_list = transactions_list.filter(transaction_type__in=types)
 
-    # 3. Apply Pagination (10 items per page)
-    page = request.GET.get('page', 1)
-    paginator = Paginator(transactions_list, 10) # Show 10 transactions per page
-
-    try:
-        transactions = paginator.page(page)
-    except PageNotAnInteger:
-        transactions = paginator.page(1)
-    except EmptyPage:
-        transactions = paginator.page(paginator.num_pages)
-
+    # 3. No Paginator - Return Full List
     return render(request, 'sales/transaction_list.html', {
-        'transactions': transactions # Now this is a 'Page' object, not just a list
+        'transactions': transactions_list
     })
+
 
 @login_required
 def transaction_detail(request, transaction_id):
