@@ -1,0 +1,54 @@
+{% extends 'base_public.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: calc(100vh - 120px);">
+        <div class="col-md-5 col-lg-4">
+            
+            <div class="text-center mb-4 animate__animated animate__fadeInDown">
+                <h1 class="fw-bold h3 mb-2 gradient-text">Verify It's You</h1>
+                <p class="text-muted small">Enter the 6-digit code sent to your email.</p>
+            </div>
+
+            <div class="card border-0 shadow-2xl glass-card p-4 p-md-5 animate__animated animate__fadeInUp">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-4 small fw-bold shadow-sm" role="alert"
+                             style="border-left: 4px solid {% if message.tags == 'error' %}#ef4444{% else %}#10b981{% endif %};">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-muted">OTP CODE</label>
+                        <input type="text" name="otp" maxlength="6" class="form-control form-control-lg bg-light border-0 shadow-none text-center fw-bold" style="letter-spacing: 5px; font-size: 1.5rem;" placeholder="------" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-lg mb-3 text-white">
+                        Verify Code
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'forgot_password' %}" class="small text-decoration-none fw-bold text-muted">Wrong Email? Try Again</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    :root { --primary-emerald: #10b981; --emerald-glow: rgba(16, 185, 129, 0.2); }
+    .glass-card { background: rgba(255, 255, 255, 0.85) !important; backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4) !important; border-radius: 1rem; }
+    .form-control:focus { box-shadow: 0 0 0 4px var(--emerald-glow) !important; }
+    .btn-primary { background-color: var(--primary-emerald); border-color: var(--primary-emerald); }
+    .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08) !important; }
+</style>
+{% endblock %}

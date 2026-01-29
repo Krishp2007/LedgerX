@@ -1,0 +1,202 @@
+{% extends 'base_public.html' %}
+{% block title %}Add Product | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            
+            <div class="card border-0 shadow-sm rounded-4 p-4 p-md-5 animate__animated animate__fadeInUp">
+                
+                <div class="mb-4 text-center text-md-start">
+                    <h3 class="fw-bold mb-1">Add New Product</h3>
+                    <p class="text-muted small mb-0">Add details to track in your inventory.</p>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="needs-validation" id="productForm" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted uppercase tracking-wide">
+                            <i class="bi bi-tag-fill me-1 text-primary"></i> Product Name
+                        </label>
+                        <input type="text" name="name" id="nameInput" class="form-control bg-light border-0 shadow-none py-2" 
+                               placeholder="e.g. Basmati Rice" required maxlength="150">
+                        <div class="invalid-feedback">Please enter a valid product name.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-muted uppercase tracking-wide">
+                            <i class="bi bi-grid-fill me-1 text-primary"></i> Category <span class="text-muted fw-normal text-lowercase">(Optional)</span>
+                        </label>
+                        <input type="text" name="category" id="categoryInput" class="form-control bg-light border-0 shadow-none py-2" 
+                               placeholder="e.g. Grains" maxlength="100">
+                        <div class="invalid-feedback" id="categoryError">Please enter a valid category.</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted uppercase tracking-wide">
+                                <i class="bi bi-currency-rupee me-1 text-success"></i> Price
+                            </label>
+                            <input type="number" step="1" min="0" name="default_price" id="priceInput"
+                                   class="form-control bg-light border-0 shadow-none py-2 fw-bold text-dark" 
+                                   placeholder="0" required>
+                            <div class="invalid-feedback">Price cannot be negative.</div>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-muted uppercase tracking-wide">
+                                <i class="bi bi-box-seam-fill me-1 text-warning"></i> Stock
+                            </label>
+                            <input type="number" min="0" step="1" name="stock_quantity" id="stockInput"
+                                   class="form-control bg-light border-0 shadow-none py-2 fw-bold text-dark" 
+                                   placeholder="0" required>
+                            <div class="invalid-feedback" id="stockError">Invalid stock.</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 text-center p-3 bg-light rounded-4 border border-dashed">
+                        <label class="form-label fw-bold small text-muted d-block mb-3">
+                            <i class="bi bi-image-fill me-1 text-secondary"></i> PRODUCT IMAGE
+                        </label>
+                        
+                        <div class="position-relative d-inline-block mb-3">
+                            <div id="placeholderPreview" class="d-flex align-items-center justify-content-center bg-white rounded-3 shadow-sm border" style="width: 120px; height: 120px;">
+                                <i class="bi bi-cloud-arrow-up fs-1 opacity-25"></i>
+                            </div>
+                            <img id="imagePreview" src="#" class="rounded-3 shadow-sm object-fit-cover d-none" style="width: 120px; height: 120px;">
+                        </div>
+
+                        <input type="file" name="image" id="imageInput" class="form-control form-control-sm border-0 bg-white w-75 mx-auto" accept="image/*">
+                        <div class="form-text x-small mt-2">Tap to upload. Max 5MB.</div>
+                        <div class="invalid-feedback" id="fileError"></div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill py-3 fw-bold shadow-sm transition-hover">
+                            <i class="bi bi-plus-lg me-1"></i> Add Product
+                        </button>
+                        <a href="{% url 'product_list' %}" class="btn btn-light rounded-pill py-3 fw-bold text-muted transition-hover">
+                            Cancel
+                        </a>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .uppercase { text-transform: uppercase; }
+    .tracking-wide { letter-spacing: 0.05em; }
+    .border-dashed { border-style: dashed !important; }
+    .transition-hover:active { transform: scale(0.98); transition: transform 0.1s; }
+    
+    /* Force error display */
+    .form-control.is-invalid {
+        background-color: #fff8f8 !important;
+        border: 1px solid #dc3545 !important;
+    }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // 1. Image Preview Logic
+    const imageInput = document.getElementById('imageInput');
+    const fileError = document.getElementById('fileError');
+
+    imageInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        
+        // Reset file errors
+        imageInput.classList.remove('is-invalid');
+        fileError.style.display = 'none';
+
+        if (file) {
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                imageInput.classList.add('is-invalid');
+                fileError.textContent = "Image is too large! Max size is 5MB.";
+                fileError.style.display = 'block';
+                imageInput.value = ""; // Clear input
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('imagePreview');
+                const placeholder = document.getElementById('placeholderPreview');
+                
+                preview.src = e.target.result;
+                preview.classList.remove('d-none');
+                if(placeholder) placeholder.classList.add('d-none');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 2. Form Validations
+    const form = document.getElementById('productForm');
+    
+    form.addEventListener('submit', function(event) {
+        let isValid = true;
+
+        // Reset previous validation states
+        document.querySelectorAll('.form-control').forEach(el => el.classList.remove('is-invalid'));
+
+        // --- Validate Name ---
+        const nameInput = document.getElementById('nameInput');
+        if (!nameInput.value.trim()) {
+            nameInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // --- Validate Category ---
+        const categoryInput = document.getElementById('categoryInput');
+        const categoryError = document.getElementById('categoryError');
+        const catVal = categoryInput.value.trim();
+        
+        if (catVal.length > 0 && /^\d+$/.test(catVal)) {
+            categoryInput.classList.add('is-invalid');
+            categoryError.textContent = "Category cannot be purely numeric.";
+            isValid = false;
+        }
+
+        // --- Validate Price ---
+        const priceInput = document.getElementById('priceInput');
+        if (priceInput.value === "" || priceInput.value < 0) {
+            priceInput.classList.add('is-invalid');
+            isValid = false;
+        }
+
+        // --- Validate Stock ---
+        const stockInput = document.getElementById('stockInput');
+        const stockError = document.getElementById('stockError');
+        const stockVal = Number(stockInput.value);
+
+        if (stockInput.value === "" || stockVal < 0) {
+            stockInput.classList.add('is-invalid');
+            stockError.textContent = "Stock cannot be negative.";
+            isValid = false;
+        } 
+        else if (!Number.isInteger(stockVal)) {
+            stockInput.classList.add('is-invalid');
+            stockError.textContent = "Stock must be a whole number.";
+            isValid = false;
+        }
+
+        if (!isValid) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Visual shake effect
+            form.classList.add('animate__animated', 'animate__headShake');
+            setTimeout(() => {
+                form.classList.remove('animate__animated', 'animate__headShake');
+            }, 500);
+        }
+    });
+});
+</script>
+{% endblock %}

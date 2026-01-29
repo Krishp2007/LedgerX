@@ -1,0 +1,25 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+
+<h3>We received your message</h3>
+
+<p>
+Hi {{ name }},
+</p>
+
+<p>
+Thank you for contacting <strong>LedgerX</strong>.
+Our team has received your message and will get back to you shortly.
+</p>
+
+<p><strong>Your message:</strong></p>
+
+<p style="white-space:pre-line; color:#374151;">
+{{ message }}
+</p>
+
+<p>
+If this was not you, you can safely ignore this email.
+</p>
+
+{% endblock %}

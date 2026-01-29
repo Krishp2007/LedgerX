@@ -1,0 +1,34 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+
+<h3>Confirm Account Deletion</h3>
+
+<p>
+You requested to permanently delete your LedgerX account.
+</p>
+
+<p>
+Please confirm this action using the OTP below:
+</p>
+
+<div style="text-align:center; margin:24px 0;">
+  <span style="
+    display:inline-block;
+    font-size:28px;
+    letter-spacing:6px;
+    font-weight:700;
+    color:#dc2626;
+  ">
+    {{ otp }}
+  </span>
+</div>
+
+<p style="color:#dc2626;">
+⚠ This action is irreversible.
+</p>
+
+<p>
+If you did not request this, please secure your account immediately.
+</p>
+
+{% endblock %}

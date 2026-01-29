@@ -1,0 +1,448 @@
+{% extends 'base_public.html' %}
+{% block title %}LedgerX – Smart Digital Ledger{% endblock %}
+
+{% block extra_css %}
+<style>
+
+/* ===== SPACING SYSTEM ===== */
+.section {
+  padding: 5.5rem 0;
+}
+
+.section-sm {
+  padding: 4rem 0;
+}
+
+/* ===== SECTION HEADINGS ===== */
+.section-head {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3.5rem;
+}
+
+.section-head span {
+  font-size: .75rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--primary-emerald);
+  font-weight: 700;
+}
+
+.section-head h2 {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  font-weight: 800;
+  margin: .8rem 0;
+}
+
+.section-head p {
+  color: #6b7280;
+  font-size: 1.05rem;
+}
+
+/* ===== HERO ===== */
+.hero {
+  padding: 3rem 0 6rem;
+  background:
+    radial-gradient(circle at 85% 25%, rgba(16,185,129,.18), transparent),
+    #fff;
+}
+
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.hero p {
+  max-width: 520px;
+  font-size: 1.1rem;
+  color: #4b5563;
+  margin: 1.8rem 0 2.5rem;
+}
+
+.hero-visual {
+  background: rgba(255,255,255,.9);
+  border-radius: 36px;
+  padding: 3.5rem 2.5rem;
+  box-shadow: 0 40px 90px rgba(0,0,0,.08);
+}
+
+/* ===== BUTTON ===== */
+.btn-main {
+  background: linear-gradient(135deg,#10b981,#059669);
+  color: #fff;
+  border-radius: 14px;
+  padding: .95rem 1.8rem;
+  font-weight: 600;
+  transition: .3s ease;
+}
+
+.btn-main:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(16,185,129,.35);
+}
+
+/* ===== PROBLEM ===== */
+.problem-card {
+  background: #fff;
+  border-radius: 26px;
+  padding: 2.3rem;
+  box-shadow: 0 20px 50px rgba(0,0,0,.06);
+  transition: .3s ease;
+}
+
+.problem-card:hover {
+  transform: translateY(-8px);
+}
+
+/* ===== FEATURES ===== */
+.feature {
+  background: linear-gradient(180deg,#fff,#f9fafb);
+  border-radius: 28px;
+  padding: 2.4rem;
+  height: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,.06);
+  transition: .35s ease;
+  text-align: center;
+}
+
+.feature:hover {
+  transform: scale(1.03);
+  box-shadow: 0 30px 70px rgba(16,185,129,.2);
+}
+
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: linear-gradient(135deg,#10b981,#059669);
+  color: #fff;
+  font-size: 1.8rem;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 1.2rem;
+}
+
+/* ===== WHO ===== */
+.who {
+  border: 1px solid #e5e7eb;
+  padding: .65rem 1.4rem;
+  border-radius: 999px;
+  font-weight: 500;
+  transition: .3s;
+}
+
+.who:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+/* ===== STATS ===== */
+.stat {
+  background: #fff;
+  padding: 2.4rem;
+  border-radius: 28px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.06);
+}
+
+/* ===== CTA ===== */
+.cta {
+  background:
+    radial-gradient(circle at top, rgba(16,185,129,.25), transparent),
+    linear-gradient(135deg,#1f2937,#020617);
+  border-radius: 40px;
+  color: #fff;
+  padding: 4.5rem 2rem;
+}
+
+
+/* Hero preview animation */
+@keyframes softFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+.hero-preview {
+  animation: softFloat 6s ease-in-out infinite;
+}
+
+/* Fade-in on load */
+.hero-preview-load {
+  opacity: 0;
+  transform: translateY(25px);
+  animation: heroFade 1s ease forwards;
+}
+
+@keyframes heroFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== HERO LEFT LOAD ANIMATION ===== */
+@keyframes heroLeftIn {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hero-left {
+  opacity: 0;
+  animation: heroLeftIn 0.9s ease-out forwards;
+}
+
+.hero-left-delay-1 {
+  animation-delay: 0.15s;
+}
+
+.hero-left-delay-2 {
+  animation-delay: 0.3s;
+}
+
+
+/* ===== SCROLL ANIMATIONS ===== */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(35px);
+  transition: all 0.8s ease;
+}
+
+.scroll-reveal.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger support */
+.scroll-delay-1 { transition-delay: .15s; }
+.scroll-delay-2 { transition-delay: .3s; }
+.scroll-delay-3 { transition-delay: .45s; }
+
+/* Accessibility: reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .scroll-reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6 hero-left">
+        <span class="fw-bold text-success hero-left hero-left-delay-1">
+  SMART DIGITAL LEDGER
+</span>
+
+<h1 class="mt-3 hero-left hero-left-delay-1">
+  Simplify Shop Records.<br>
+  <span class="gradient-text">Grow with Confidence.</span>
+</h1>
+
+<p class="hero-left hero-left-delay-2">
+  LedgerX helps shop owners manage sales, customer ledgers,
+  and payments in one clean digital system.
+</p>
+
+<div class="hero-left hero-left-delay-2">
+   {% if user.is_authenticated %}
+          <a href="{% url 'dashboard' %}" class="btn btn-main btn-lg">Go To Dashboard</a>
+        {% else %}
+          <div class="d-grid d-sm-flex gap-3 mt-4">
+  <a href="{% url 'register' %}" class="btn btn-main btn-lg d-flex align-items-center justify-content-center gap-2">
+    <span>Start Free</span>
+    <span class="fw-bold">→</span>
+  </a>
+
+  <a href="{% url 'login' %}" class="btn btn-outline-dark btn-lg d-flex align-items-center justify-content-center gap-2">
+    <span>Login</span>
+  </a>
+</div>
+
+<p class="small text-muted mt-3">
+  No credit card required • Free forever for basic use
+</p>
+
+        {% endif %}
+      </div>
+</div>
+
+
+       
+
+      <div class="col-lg-6 text-center position-relative">
+
+  <!-- Glow -->
+  <div style="
+    position:absolute;
+    inset:0;
+    background: radial-gradient(circle, rgba(16,185,129,.25), transparent 70%);
+    z-index:0;">
+  </div>
+
+  <!-- App Preview -->
+  <div class="hero-visual mx-auto hero-preview hero-preview-load"
+     style="max-width:420px; position:relative; z-index:1;">
+
+    
+    <div class="text-start mb-3">
+      <span class="badge bg-success-subtle text-success fw-semibold">
+        Live Preview
+      </span>
+    </div>
+
+    <div class="bg-white rounded-4 p-4 shadow-lg">
+      <h6 class="fw-bold mb-3">Today’s Summary</h6>
+
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Sales</span>
+        <span class="fw-semibold">₹4,250</span>
+      </div>
+
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">Received</span>
+        <span class="fw-semibold text-success">₹3,100</span>
+      </div>
+
+      <div class="d-flex justify-content-between mb-3">
+        <span class="text-muted">Pending</span>
+        <span class="fw-semibold text-danger">₹1,150</span>
+      </div>
+
+      <hr>
+
+      <small class="text-muted">
+        Updated just now • Mobile friendly
+      </small>
+    </div>
+
+  </div>
+</div>
+
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span>THE PROBLEM</span>
+      <h2>Traditional Ledgers Slow You Down</h2>
+      <p>Manual record keeping creates confusion, errors and payment disputes.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="problem-card">
+          <h5>Paper Registers</h5>
+          <p class="text-muted small">Entries fade, pages tear, no backup.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="problem-card">
+          <h5>Manual Calculations</h5>
+          <p class="text-muted small">Errors lead to wrong balances.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="problem-card">
+          <h5>Customer Confusion</h5>
+          <p class="text-muted small">No transparency in dues.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section bg-light">
+  <div class="container">
+    <div class="section-head">
+      <span>CORE FEATURES</span>
+      <h2>Everything Your Shop Needs</h2>
+      <p>Powerful tools designed for everyday business operations.</p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-3">
+        <div class="feature">
+          <div class="feature-icon">📒</div>
+          <h6>Digital Ledger</h6>
+          <p class="text-muted small">Maintain accurate customer records.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="feature">
+          <div class="feature-icon">🔳</div>
+          <h6>QR Code Sharing</h6>
+          <p class="text-muted small">Customers view ledgers instantly.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <h6>Smart Reports</h6>
+          <p class="text-muted small">Track sales and outstanding dues.</p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="feature">
+          <div class="feature-icon">📱</div>
+          <h6>Mobile First</h6>
+          <p class="text-muted small">Optimized for smartphone usage.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO -->
+<section class="section-sm">
+  <div class="container text-center">
+    <div class="section-head">
+      <span>USE CASES</span>
+      <h2>Built for Local Businesses</h2>
+    </div>
+
+    <div class="d-flex flex-wrap justify-content-center gap-3">
+      <div class="who">🛒 Kirana Stores</div>
+      <div class="who">🏪 Retail Shops</div>
+      <div class="who">🍞 Bakeries</div>
+      <div class="who">🔧 Service Shops</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="section">
+  <div class="container">
+    <div class="cta text-center">
+      <h2 class="fw-bold mb-3">Go Digital with LedgerX</h2>
+      <p class="mb-4 opacity-75">Free to start. Built for mobile users.</p>
+      <a href="{% url 'register' %}" class="btn btn-main btn-lg">Get Started Now</a>
+    </div>
+  </div>
+</section>
+
+
+
+    <script src="{ static 'home.js'}"></script>
+
+{% endblock %}

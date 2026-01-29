@@ -1,0 +1,531 @@
+{% extends 'base_public.html' %}
+{% block title %}New Sale | LedgerX{% endblock %}
+
+{% block content %}
+<style>
+    /* === POS LAYOUT === */
+    body { background-color: #f0f2f5; }
+    
+    .pos-container {
+        max-width: 1300px;
+        margin: 10px auto;
+        height: calc(100vh - 80px);
+        display: flex;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        border-radius: 12px;
+        overflow: hidden;
+        background: white;
+    }
+
+    /* === RESPONSIVE GRID (2-3-4 Layout) === */
+    .product-grid {
+        display: grid;
+        gap: 10px;
+        padding: 10px;
+        align-content: start;
+        
+        /* 📱 Mobile: 2 Columns */
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* 📱 Tablet: 3 Columns */
+    @media (min-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    /* 💻 Laptop/Desktop: 4 Columns */
+    @media (min-width: 1200px) {
+        .product-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    /* === PRODUCT CARD === */
+    .product-card {
+        position: relative;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .product-card:hover {
+        border-color: #10b981;
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(16, 185, 129, 0.15);
+    }
+
+    .product-card:active { transform: scale(0.98); }
+
+    /* Out of Stock State */
+    .product-card.out-of-stock {
+        opacity: 0.6;
+        filter: grayscale(100%);
+        cursor: not-allowed !important;
+        pointer-events: none;
+    }
+
+    /* Image Container */
+    .card-img-container {
+        width: 100%;
+        height: 120px; /* Fixed height */
+        background-color: #f8fafc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+
+    .card-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Card Details */
+    .card-body { padding: 8px 4px; text-align: center; }
+    
+    .product-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 5px;
+    }
+
+    /* Stock Badge */
+    .stock-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: 700;
+        z-index: 2;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .badge-in { background: #10b981; color: white; }
+    .badge-out { background: #ef4444; color: white; }
+
+    /* === SCROLL & UTILS === */
+    .scroll-area {
+        overflow-y: auto;
+        flex-grow: 1; 
+        scrollbar-width: thin;
+    }
+    .scroll-area::-webkit-scrollbar { width: 5px; }
+    .scroll-area::-webkit-scrollbar-thumb { background-color: #d1fae5; border-radius: 10px; }
+
+    /* Right Sidebar */
+    .cart-sidebar {
+        background: #fafafa;
+        border-left: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    /* Mobile Drawer */
+    @media (max-width: 991px) {
+        .pos-container { height: auto; min-height: 100vh; margin: 0; border-radius: 0; padding-bottom: 80px; }
+        .cart-sidebar {
+            position: fixed; top: 0; right: 0; width: 100%; height: 100%;
+            z-index: 2000; transform: translateX(100%); transition: transform 0.3s ease;
+        }
+        .cart-sidebar.open { transform: translateX(0); }
+        #mobileBottomBar { display: flex !important; }
+    }
+
+    @media (min-width: 992px) {
+        #mobileBottomBar { display: none !important; }
+        .mobile-cart-header { display: none !important; }
+    }
+
+    /* Colors */
+    .bg-emerald { background-color: #10b981 !important; }
+    .text-emerald { color: #10b981 !important; }
+    .btn-emerald { background-color: #10b981; color: white; border: none; font-weight: 600; }
+    .btn-emerald:hover { background-color: #059669; color: white; }
+    .btn-emerald:disabled { background-color: #a7f3d0; opacity: 1; }
+    
+    .modal { z-index: 9999 !important; }
+    .modal-backdrop { z-index: 9998 !important; }
+    .qty-input-field { width: 30px; text-align: center; border: none; font-weight: bold; background: transparent; }
+</style>
+
+<div class="pos-container">
+    <div class="row g-0 h-100 w-100">
+        
+        <div class="col-lg-8 h-100 d-flex flex-column bg-white">
+            
+            <div class="px-3 py-3 border-bottom d-flex gap-2 align-items-center bg-white shadow-sm" style="z-index: 10;">
+                <a href="{% url 'dashboard' %}" class="btn btn-light btn-sm rounded-circle border d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                    <i class="bi bi-arrow-left text-dark"></i>
+                </a>
+                <div class="position-relative flex-grow-1">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="productSearch" class="form-control rounded-pill ps-5 bg-light border-0" placeholder="Search..." autocomplete="off">
+                    <button type="button" id="clearSearchBtn" onclick="clearSearch()" class="btn btn-link position-absolute top-50 end-0 translate-middle-y text-muted text-decoration-none d-none me-2">
+                        <i class="bi bi-x-circle-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="scroll-area bg-light">
+                <div class="product-grid" id="productList">
+                    {% for product in products %}
+                    <div class="product-card {% if product.stock_quantity == 0 %}out-of-stock{% endif %}"
+                         onclick="addToCart('{{ product.id }}', '{{ product.name|escapejs }}', {{ product.default_price }}, {{ product.stock_quantity }})"
+                         data-name="{{ product.name|lower }}">
+                        
+                        <div class="card-img-container">
+                            {% if product.image %}
+                                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                            {% else %}
+                                <i class="bi bi-box-seam fs-3 text-muted opacity-50"></i>
+                            {% endif %}
+                            
+                            {% if product.stock_quantity == 0 %}
+                                <div class="stock-badge badge-out">OUT</div>
+                            {% else %}
+                                <div class="stock-badge badge-in">{{ product.stock_quantity }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body">
+                            <div class="product-name" title="{{ product.name }}">{{ product.name }}</div>
+                            <div class="text-emerald fw-bold small">₹{{ product.default_price|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center py-5 text-muted">No products found.</div>
+                    {% endfor %}
+                </div>
+                
+                <div id="noResults" class="text-center py-5 d-none w-100 text-muted">No matching items.</div>
+            </div>
+
+            <div id="paginationControls" class="px-3 py-2 bg-white border-top d-flex justify-content-between align-items-center mt-auto">
+                <button class="btn btn-sm btn-light border fw-bold px-3 rounded-pill" onclick="changePage(-1)" id="prevBtn">Prev</button>
+                <span class="small fw-bold text-muted" id="pageIndicator">Page 1</span>
+                <button class="btn btn-sm btn-light border fw-bold px-3 rounded-pill" onclick="changePage(1)" id="nextBtn">Next</button>
+            </div>
+        </div>
+
+        <div class="col-lg-4 cart-sidebar" id="cartSidebar">
+            <div class="mobile-cart-header bg-white p-3 border-bottom d-flex justify-content-between align-items-center shadow-sm">
+                <h6 class="fw-bold mb-0">Current Bill</h6>
+                <button class="btn btn-light btn-sm rounded-circle border" onclick="toggleMobileCart(false)"><i class="bi bi-chevron-down"></i></button>
+            </div>
+
+            <div class="px-4 py-3 border-bottom bg-emerald text-white d-none d-lg-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0">New Sale</h6>
+                <div class="badge bg-white text-emerald rounded-pill border">{% now "d M" %}</div>
+            </div>
+
+            <div class="p-3 bg-white border-bottom position-relative" style="z-index: 101;">
+                <div class="btn-group w-100 mb-3 shadow-sm" role="group">
+                    <input type="radio" class="btn-check" name="mode" id="modeCash" value="CASH" checked onchange="toggleMode()">
+                    <label class="btn btn-outline-success fw-bold py-1 small" for="modeCash">Cash</label>
+                    <input type="radio" class="btn-check" name="mode" id="modeCredit" value="CREDIT" onchange="toggleMode()">
+                    <label class="btn btn-outline-secondary fw-bold py-1 small" for="modeCredit">Credit</label>
+                </div>
+
+                <div id="customerSection" style="display: none;">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-emerald"></i></span>
+                        <input type="text" id="custSearch" class="form-control border-start-0 shadow-none" placeholder="Select Customer..." autocomplete="off">
+                        <button class="btn btn-outline-primary border" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </button>
+                    </div>
+                    <input type="hidden" id="selectedCustId">
+                    <div id="custResults" class="list-group position-absolute shadow-lg w-100 start-0 px-3" 
+                         style="z-index: 2050; top: 100%; display:none; max-height: 200px; overflow-y: auto;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-area bg-white p-0 position-relative" style="z-index: 1;">
+                <table class="table table-sm table-borderless mb-0 align-middle">
+                    <thead class="bg-light sticky-top text-muted x-small border-bottom">
+                        <tr>
+                            <th class="ps-3 py-2 fw-normal">Item</th>
+                            <th class="text-center fw-normal">Qty</th>
+                            <th class="text-end pe-3 fw-normal">Price</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartBody"></tbody>
+                </table>
+                <div id="emptyState" class="text-center py-5 text-muted small">Cart is empty.</div>
+            </div>
+
+            <div class="p-3 bg-white border-top shadow-lg" style="z-index: 20;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted small">Total</span>
+                    <h4 class="fw-bold mb-0 text-dark">₹<span id="grandTotal">0.00</span></h4>
+                </div>
+                <div id="creditInputs" class="mb-3" style="display: none;">
+                    <div class="d-flex gap-2 align-items-center bg-light p-2 rounded-3 border">
+                        <span class="small fw-bold text-muted ps-1">Paid:</span>
+                        <input type="number" id="amountPaid" class="form-control form-control-sm border-0 bg-transparent fw-bold text-end p-0" placeholder="0">
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1 px-1">
+                        <small class="text-danger fw-bold">Due</small>
+                        <small class="fw-bold text-danger">₹<span id="balanceDue">0.00</span></small>
+                    </div>
+                </div>
+                <form method="post" id="finalForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="transaction_type" id="formType" value="CASH">
+                    <input type="hidden" name="customer_id" id="formCustId">
+                    <input type="hidden" name="amount_paid" id="formAmount">
+                    <div id="hiddenItems"></div>
+                    <button type="submit" id="checkoutBtn" class="btn btn-emerald w-100 py-2 rounded-pill shadow-sm" disabled>Confirm Sale</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="mobileBottomBar" class="fixed-bottom bg-white border-top shadow-lg p-2 d-flex justify-content-between align-items-center" style="display: none; z-index: 1040;">
+    <div class="ps-2">
+        <div class="text-muted x-small fw-bold uppercase" style="font-size: 0.65rem;">Total Bill</div>
+        <h5 class="fw-bold text-emerald mb-0">₹<span id="mobileTotal">0.00</span></h5>
+    </div>
+    <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="toggleMobileCart(true)">
+        <span>View Bill</span>
+        <span class="badge bg-white text-dark rounded-pill" id="mobileCount">0</span>
+    </button>
+</div>
+
+<div class="modal fade" id="addCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-body p-4">
+                <h6 class="fw-bold mb-3 text-emerald">New Customer</h6>
+                <form id="newCustForm">
+                    <input type="text" id="newCustName" class="form-control mb-2" placeholder="Full Name" required>
+                    <input type="tel" id="newCustMobile" class="form-control mb-3" placeholder="Mobile Number" required>
+                    <div id="modalError" class="alert alert-danger x-small py-2 mb-3 d-none"></div>
+                    <button type="submit" class="btn btn-emerald w-100 rounded-pill btn-sm">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="custData" class="d-none">{% for c in customers %}<span data-id="{{ c.id }}" data-name="{{ c.name }}" data-mobile="{{ c.mobile }}"></span>{% endfor %}</div>
+
+<script>
+    let cart = {};
+    let customers = [];
+    const ITEMS_PER_PAGE = 20; 
+    let currentPage = 1;
+    let filteredProducts = [], allProducts = [];
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll('#custData span').forEach(el => customers.push({ id: el.dataset.id, name: el.dataset.name, mobile: el.dataset.mobile }));
+        
+        allProducts = Array.from(document.querySelectorAll('.product-card')).map(card => ({ element: card, name: card.dataset.name }));
+        filteredProducts = allProducts;
+        renderPagination();
+        validateForm();
+    });
+
+    function renderPagination() {
+        const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        allProducts.forEach(p => p.element.style.display = 'none');
+        document.getElementById('noResults').classList.add('d-none');
+
+        const start = (currentPage - 1) * ITEMS_PER_PAGE;
+        const end = start + ITEMS_PER_PAGE;
+        const pageItems = filteredProducts.slice(start, end);
+
+        if (pageItems.length === 0 && filteredProducts.length === 0) document.getElementById('noResults').classList.remove('d-none');
+        else pageItems.forEach(p => p.element.style.display = 'flex');
+
+        document.getElementById('pageIndicator').innerText = `Page ${currentPage}/${totalPages}`;
+        document.getElementById('prevBtn').disabled = (currentPage === 1);
+        document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+    }
+
+    function changePage(delta) { currentPage += delta; renderPagination(); }
+
+    document.getElementById('productSearch').addEventListener('keyup', function(e) {
+        const term = e.target.value.toLowerCase().trim();
+        const clearBtn = document.getElementById('clearSearchBtn');
+        if (term.length > 0) {
+            clearBtn.classList.remove('d-none');
+            filteredProducts = allProducts.filter(p => p.name.includes(term));
+        } else {
+            clearBtn.classList.add('d-none');
+            filteredProducts = allProducts;
+        }
+        currentPage = 1;
+        renderPagination();
+    });
+
+    window.clearSearch = function() {
+        const input = document.getElementById('productSearch');
+        input.value = '';
+        input.dispatchEvent(new Event('keyup'));
+        input.focus();
+    }
+
+    function toggleMobileCart(show) {
+        const sidebar = document.getElementById('cartSidebar');
+        if (show) sidebar.classList.add('open');
+        else sidebar.classList.remove('open');
+    }
+
+    function addToCart(id, name, price, stock) {
+        if (stock <= 0) return;
+        if (cart[id]) {
+            if (cart[id].qty < stock) cart[id].qty++;
+            else alert("Max stock reached!");
+        } else {
+            cart[id] = { name, price, stock, qty: 1 };
+        }
+        renderCart();
+    }
+
+    function updateQty(id, delta) {
+        if (!cart[id]) return;
+        const newQty = cart[id].qty + delta;
+        if (newQty <= 0) delete cart[id];
+        else if (newQty > cart[id].stock) { alert("Exceeds stock!"); cart[id].qty = cart[id].stock; }
+        else cart[id].qty = newQty;
+        renderCart();
+    }
+
+    function renderCart() {
+        const tbody = document.getElementById('cartBody');
+        tbody.innerHTML = '';
+        let total = 0, count = 0;
+
+        for (const [id, item] of Object.entries(cart)) {
+            count += item.qty;
+            const lineTotal = item.qty * item.price;
+            total += lineTotal;
+            tbody.innerHTML += `
+                <tr class="bg-white border-bottom">
+                    <td class="ps-3 py-2 align-middle">
+                        <div class="fw-bold text-dark text-truncate" style="max-width: 100px; font-size: 0.85rem;">${item.name}</div>
+                    </td>
+                    <td class="text-center py-2 align-middle">
+                        <div class="btn-group btn-group-sm border rounded-pill bg-white">
+                            <button class="btn btn-link text-decoration-none text-muted py-0 px-2" onclick="updateQty('${id}', -1)">-</button>
+                            <span class="qty-input-field d-inline-block pt-1">${item.qty}</span>
+                            <button class="btn btn-link text-decoration-none text-muted py-0 px-2" onclick="updateQty('${id}', 1)">+</button>
+                        </div>
+                    </td>
+                    <td class="text-end pe-3 py-2 align-middle fw-bold small">₹${lineTotal}</td>
+                    <td class="py-2 align-middle"><i class="bi bi-x text-danger cursor-pointer" onclick="delete cart['${id}']; renderCart();"></i></td>
+                </tr>`;
+        }
+        document.getElementById('emptyState').classList.toggle('d-none', count > 0);
+        document.getElementById('grandTotal').innerText = total.toFixed(2);
+        document.getElementById('mobileTotal').innerText = total.toFixed(2);
+        document.getElementById('mobileCount').innerText = count;
+        updateBalance();
+        validateForm();
+    }
+
+    const custInput = document.getElementById('custSearch');
+    const custResults = document.getElementById('custResults');
+
+    custInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        custResults.innerHTML = '';
+        if (term.length < 1) { custResults.style.display = 'none'; return; }
+        const matches = customers.filter(c => c.name.toLowerCase().includes(term) || c.mobile.includes(term));
+        if (matches.length) {
+            custResults.style.display = 'block';
+            matches.forEach(c => {
+                custResults.innerHTML += `<button type="button" class="list-group-item list-group-item-action small" onclick="pickCustomer('${c.id}', '${c.name}')"><strong>${c.name}</strong> <span class="text-muted small">(${c.mobile})</span></button>`;
+            });
+        } else custResults.style.display = 'none';
+    });
+
+    function pickCustomer(id, name) {
+        document.getElementById('selectedCustId').value = id;
+        custInput.value = name;
+        custInput.classList.add('is-valid');
+        custResults.style.display = 'none';
+        validateForm();
+    }
+
+    function toggleMode() {
+        const isCredit = document.getElementById('modeCredit').checked;
+        document.getElementById('customerSection').style.display = isCredit ? 'block' : 'none';
+        document.getElementById('creditInputs').style.display = isCredit ? 'block' : 'none';
+        document.getElementById('formType').value = isCredit ? 'CREDIT' : 'CASH';
+        updateBalance();
+        validateForm();
+    }
+
+    function validateForm() {
+        const hasItems = Object.keys(cart).length > 0;
+        const isCredit = document.getElementById('modeCredit').checked;
+        const hasCust = document.getElementById('selectedCustId').value !== "";
+        document.getElementById('checkoutBtn').disabled = !(hasItems && (!isCredit || hasCust));
+    }
+
+    function updateBalance() {
+        const total = parseFloat(document.getElementById('grandTotal').innerText);
+        const paid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        document.getElementById('balanceDue').innerText = Math.max(0, total - paid).toFixed(2);
+    }
+    document.getElementById('amountPaid').addEventListener('input', updateBalance);
+
+    document.getElementById('newCustForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('newCustName');
+        const mobileInput = document.getElementById('newCustMobile');
+        const name = nameInput.value.trim();
+        const mobile = mobileInput.value.trim();
+        const errorEl = document.getElementById('modalError');
+        const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        if (!/^[a-zA-Z\s\.]+$/.test(name) || name.length < 2) { errorEl.innerText = "❌ Name: Letters only."; errorEl.classList.remove('d-none'); return; }
+        if (!/^\d{10}$/.test(mobile)) { errorEl.innerText = "❌ Mobile: 10 digits only."; errorEl.classList.remove('d-none'); return; }
+
+        fetch("{% url 'ajax_add_customer' %}", {
+            method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrf },
+            body: `name=${encodeURIComponent(name)}&mobile=${encodeURIComponent(mobile)}`
+        }).then(r => r.json()).then(data => {
+            if (data.status === 'success') {
+                customers.push(data.customer);
+                pickCustomer(data.customer.id, data.customer.name);
+                bootstrap.Modal.getInstance(document.getElementById('addCustomerModal')).hide();
+                this.reset();
+                errorEl.classList.add('d-none');
+            } else { errorEl.innerText = data.message; errorEl.classList.remove('d-none'); }
+        });
+    });
+
+    document.getElementById('finalForm').addEventListener('submit', function(e) {
+        document.getElementById('formCustId').value = document.getElementById('selectedCustId').value;
+        document.getElementById('formAmount').value = document.getElementById('amountPaid').value;
+        const container = document.getElementById('hiddenItems');
+        container.innerHTML = '';
+        for (const [id, item] of Object.entries(cart)) container.innerHTML += `<input type="hidden" name="qty_${id}" value="${item.qty}">`;
+    });
+</script>
+{% endblock %}
