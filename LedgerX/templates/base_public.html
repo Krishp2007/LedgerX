@@ -1,0 +1,223 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}LedgerX{% endblock %}</title>
+
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+
+    <style>
+      /* ===== STICKY FOOTER (NO FIXED POSITION) ===== */
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* main content area grows */
+      body > div {
+        flex: 1;
+      }
+
+      /* footer stays at bottom when content is small */
+      footer {
+        margin-top: auto;
+      }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top py-3">
+      <div class="container">
+        <a
+          class="navbar-brand fw-bold d-flex align-items-center fs-3"
+          href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}/{% endif %}"
+        >
+          <h2 class="fw-bold">Ledger<span style="color: #10b981; font-family: 'Pacifico', cursive;"> X</span></h2>
+        </a>
+
+        <button
+          class="navbar-toggler border-0 shadow-none"
+          data-bs-toggle="collapse"
+          data-bs-target="#nav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="nav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            {% if user.is_authenticated %}
+            <!-- 🔐 AUTHENTICATED NAV -->
+
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-semibold" href="{% url 'dashboard' %}">
+                Home
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link px-3 fw-semibold"
+                href="{% url 'customer_list' %}"
+              >
+                Customers
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a
+                class="nav-link px-3 fw-semibold"
+                href="{% url 'reports_home' %}"
+              >
+                Reports
+              </a>
+            </li>
+
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-primary px-4" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">
+                Logout
+              </a>
+            </li>
+
+            {% else %}
+            <!-- 🔓 PUBLIC NAV -->
+
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-semibold" href="/">Home</a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-semibold" href="{% url 'about' %}">
+                About
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-semibold" href="{% url 'contact' %}">
+                Contact Us
+              </a>
+            </li>
+
+            <li class="nav-item ms-lg-3">
+              <a class="btn btn-primary px-4" href="{% url 'login' %}">
+                Login
+              </a>
+            </li>
+
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div style="margin-top: 100px">
+
+        <div class="container">
+            {# 🟢 CHANGE: We check the current URL name. If it is NOT an accounts view, we show messages. #}
+            {% with account_views="login register verify_registration_otp forgot_password verify_otp reset_password_confirm logout account_settings delete_shop_request delete_shop_verify check_username" %}
+            
+            {% if request.resolver_match.url_name not in account_views.split %}
+                {% if messages %}
+                    {% for message in messages %}
+                        {# Ignore modal-specific messages here, they show in popups #}
+                        {% if 'modal_' not in message.tags %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm fw-bold small animate__animated animate__fadeInDown" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+            
+            {% endwith %}
+        </div>
+      
+      {% block content %}{% endblock %}
+    </div>
+
+    <footer class="py-4 bg-light mt-5">
+      <div class="container">
+        <div class="row align-items-center text-center text-md-start">
+          <div class="col-md-6 mb-3 mb-md-0">
+            <strong>Ledger<span class="text-success">X</span></strong>
+            <p class="small text-muted mb-0">
+              Smart Digital Ledger for Local Businesses
+            </p>
+          </div>
+
+          <div class="col-md-6 text-md-end">
+            <a href="/" class="text-muted small me-3">Home</a>
+            <a href="{% url 'about' %}" class="text-muted small me-3">About</a>
+            <a href="{% url 'contact' %}" class="text-muted small">Contact</a>
+          </div>
+        </div>
+
+        <hr class="my-3" />
+
+        <div class="text-center small text-muted">
+          © {{ year|default:"2026" }} LedgerX. All rights reserved.
+        </div>
+      </div>
+    </footer>
+
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold">Ready to Leave?</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          
+          <div class="modal-body text-center py-4 px-4">
+            <div class="fs-1 mb-3">👋</div>
+            <p class="text-muted mb-0">Are you sure you want to log out of your account?</p>
+          </div>
+
+          <div class="modal-footer border-0 pb-4 px-4 d-flex flex-column-reverse flex-sm-row justify-content-center gap-2 gap-sm-3">
+            
+            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold w-100 w-sm-auto" data-bs-dismiss="modal">
+                Cancel
+            </button>
+            
+            <a href="{% url 'logout' %}" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm w-100 w-sm-auto">
+                Yes, Logout
+            </a>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

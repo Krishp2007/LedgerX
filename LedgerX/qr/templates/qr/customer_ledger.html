@@ -1,0 +1,315 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Ledger | {{ customer.shop.shop_name }}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background-color: #f4f6f8;
+            font-family: 'Inter', sans-serif;
+            color: #1f2937;
+        }
+        
+        /* Premium Gradient Background */
+        .bg-premium-gradient {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+        }
+        
+        /* Table Styling */
+        .table-card {
+            border-radius: 20px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        /* Pagination Buttons */
+        .btn-pagination {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+            border: 1px solid #e5e7eb;
+            background: white;
+            color: #374151;
+            transition: all 0.2s;
+        }
+        .btn-pagination:hover:not(:disabled) {
+            background-color: #f3f4f6;
+            transform: scale(1.05);
+        }
+        .btn-pagination:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .ledger-row { display: none; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.05em; }
+        .x-small { font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8">
+                
+                <div class="text-center mb-4 animate__animated animate__fadeInDown">
+                    <div class="d-inline-flex align-items-center gap-2 bg-white px-4 py-2 rounded-pill shadow-sm border">
+                        <i class="bi bi-shop text-success fs-5"></i>
+                        <span class="fw-bold text-dark">{{ customer.shop.shop_name }}</span>
+                    </div>
+                </div>
+
+                <div class="card border-0 bg-premium-gradient p-4 p-md-5 mb-4 shadow-lg animate__animated animate__fadeInUp" style="border-radius: 24px;">
+                    
+                    <div class="row align-items-center">
+                        <div class="col-md-7 mb-4 mb-md-0">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="bg-white bg-opacity-25 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 50px; height: 50px;">
+                                    <span class="fs-4 text-white">👤</span>
+                                </div>
+                                <div>
+                                    <div class="x-small text-white-50 uppercase">Account Holder</div>
+                                    <h4 class="fw-bold mb-0 text-white">{{ customer.name }}</h4>
+                                    <div class="x-small text-white-50">{{ customer.mobile }}</div>
+                                </div>
+                            </div>
+
+                            <hr class="border-white opacity-25 my-3">
+
+                            <div>
+                                <p class="small text-white-50 mb-1 fw-bold uppercase tracking-wide">
+                                    {% if outstanding_amount > 0 %}
+                                        TOTAL PAYABLE
+                                    {% elif outstanding_amount < 0 %}
+                                        ADVANCE BALANCE
+                                    {% else %}
+                                        ALL SETTLED
+                                    {% endif %}
+                                </p>
+                                <h1 class="fw-bold mb-0 display-4">
+                                    {% if outstanding_amount < 0 %}
+                                        ₹{{ outstanding_amount|stringformat:"+d"|slice:"1:" }}
+                                    {% else %}
+                                        ₹{{ outstanding_amount }}
+                                    {% endif %}
+                                </h1>
+                            </div>
+                        </div>
+
+                        <div class="col-md-5">
+                            <div class="bg-white bg-opacity-10 rounded-4 p-3 border border-white border-opacity-25">
+                                <div class="row g-2 text-center">
+                                    <div class="col-6 border-end border-white border-opacity-25">
+                                        <div class="x-small text-white-50 uppercase mb-1">Last Active</div>
+                                        <div class="fw-bold small">
+                                            {% if ledger_rows %}
+                                                {{ ledger_rows.0.tx.transaction_date|date:"d M" }}
+                                            {% else %}
+                                                -
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="x-small text-white-50 uppercase mb-1">Transactions</div>
+                                        <div class="fw-bold small">{{ ledger_rows|length }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-center text-md-end">
+                                {% if outstanding_amount > 0 %}
+                                    <span class="badge bg-white text-danger bg-opacity-100 border rounded-pill px-3 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-exclamation-circle me-1"></i> Payment Due
+                                    </span>
+                                {% elif outstanding_amount < 0 %}
+                                    <span class="badge bg-white text-success bg-opacity-100 border rounded-pill px-3 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-check-circle me-1"></i> Advance Paid
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-white text-dark bg-opacity-100 border rounded-pill px-3 py-2 fw-bold shadow-sm">
+                                        <i class="bi bi-check-all me-1"></i> No Dues
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-end mb-3 px-2 animate__animated animate__fadeIn">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">Transaction History</h5>
+                        <span class="x-small text-muted" id="recordCount">Loading records...</span>
+                    </div>
+                </div>
+
+                <div class="card border-0 table-card overflow-hidden animate__animated animate__fadeInUp bg-white">
+                    <div class="table-responsive">
+                        <table class="table align-middle mb-0 table-hover text-nowrap">
+                            <thead class="bg-light text-muted x-small uppercase">
+                                <tr>
+                                    <th class="ps-4 py-3 border-0">Date</th>
+                                    <th class="py-3 border-0">Details</th>
+                                    <th class="text-end pe-4 py-3 border-0">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ledgerBody">
+                                {% for row in ledger_rows %}
+                                <tr class="ledger-row" style="cursor: pointer;" 
+                                    onclick="window.location='{% url 'qr_transaction_detail' secure_token=qr_token.secure_token transaction_id=row.tx.id %}'">
+                                    
+                                    <td class="ps-4 border-0">
+                                        <div class="fw-bold text-dark small">{{ row.tx.transaction_date|date:"d M Y" }}</div>
+                                        <div class="x-small text-muted">{{ row.tx.transaction_date|time:"h:i A" }}</div>
+                                    </td>
+
+                                    <td class="border-0">
+                                        {% if row.tx.transaction_type == 'PAYMENT' %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-success-subtle rounded-circle p-1 me-2 d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-arrow-down-left text-success small"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="d-block small fw-bold text-dark">Payment</span>
+                                                    <span class="d-block x-small text-success">Received</span>
+                                                </div>
+                                            </div>
+                                        {% elif row.tx.transaction_type == 'CREDIT' %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-warning-subtle rounded-circle p-1 me-2 d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-arrow-up-right text-warning small"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="d-block small fw-bold text-dark">Purchase</span>
+                                                    <span class="d-block x-small text-muted">Credit Added</span>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded-circle p-1 me-2 d-flex justify-content-center align-items-center" style="width: 32px; height: 32px;">
+                                                    <i class="bi bi-receipt text-muted small"></i>
+                                                </div>
+                                                <div>
+                                                    <span class="d-block small fw-bold text-dark">Sale</span>
+                                                    <span class="d-block x-small text-muted">Cash Settled</span>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-end pe-4 border-0">
+                                        <div class="fw-bold small {% if row.tx.transaction_type == 'PAYMENT' %}text-success{% else %}text-dark{% endif %}">
+                                            {% if row.tx.transaction_type == 'PAYMENT' %}
+                                                + ₹{{ row.tx.total_amount }}
+                                            {% else %}
+                                                ₹{{ row.tx.total_amount }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="x-small text-muted opacity-75">
+                                            Bal: ₹{{ row.abs_balance }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr class="no-data">
+                                    <td colspan="3" class="text-center py-5 text-muted small border-0">
+                                        <div class="mb-2 fs-1 opacity-25">📂</div>
+                                        No recent transactions found.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center" id="paginationControls">
+                        <button class="btn-pagination" id="prevBtn" onclick="changePage(-1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span class="x-small fw-bold text-muted uppercase tracking-wide" id="pageIndicator">Page 1</span>
+                        <button class="btn-pagination" id="nextBtn" onclick="changePage(1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-5 mb-4">
+                    <p class="x-small text-muted opacity-50 mb-0">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Securely powered by LedgerX
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const rows = document.querySelectorAll(".ledger-row");
+            const rowsPerPage = 10; 
+            let currentPage = 1;
+            const totalPages = Math.ceil(rows.length / rowsPerPage);
+            
+            const prevBtn = document.getElementById("prevBtn");
+            const nextBtn = document.getElementById("nextBtn");
+            const pageIndicator = document.getElementById("pageIndicator");
+            const recordCount = document.getElementById("recordCount");
+            const controls = document.getElementById("paginationControls");
+
+            // Update record count
+            if(recordCount) {
+                recordCount.innerText = `${rows.length} Records Found`;
+            }
+
+            if (rows.length === 0) {
+                controls.style.display = 'none';
+                return;
+            }
+
+            function showPage(page) {
+                if (page < 1) page = 1;
+                if (page > totalPages) page = totalPages;
+                currentPage = page;
+
+                const start = (page - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+
+                rows.forEach((row, index) => {
+                    if (index >= start && index < end) {
+                        row.style.display = "table-row";
+                        row.classList.add("animate__animated", "animate__fadeIn");
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+
+                pageIndicator.innerText = `PAGE ${currentPage} OF ${totalPages}`;
+                prevBtn.disabled = currentPage === 1;
+                nextBtn.disabled = currentPage === totalPages;
+                
+                controls.style.display = totalPages <= 1 ? 'none' : 'flex';
+            }
+
+            window.changePage = function(direction) {
+                showPage(currentPage + direction);
+            };
+
+            showPage(1);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+{% extends 'base_public.html' %}
+{% block title %}Reports Hub | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="text-center mb-5 animate__animated animate__fadeIn">
+        <h6 class="text-primary fw-bold text-uppercase tracking-wide mb-2">Analytics Center</h6>
+        <h1 class="fw-bold display-5 mb-3">Business <span class="text-primary">Reports</span></h1>
+        <p class="text-muted lead mx-auto" style="max-width: 600px;">
+            Gain insights into your shop's performance, track sales trends, and manage customer balances efficiently.
+        </p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+            <a href="{% url 'sales_report' %}" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift text-center group">
+                    <div class="icon-box bg-success-subtle text-success mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-graph-up-arrow fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Sales Report</h5>
+                    <p class="text-muted small mb-0">Detailed history of Cash & Credit transactions over time.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
+            <a href="{% url 'product_report' %}" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift text-center group">
+                    <div class="icon-box bg-primary-subtle text-primary mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-box-seam fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Product Sales</h5>
+                    <p class="text-muted small mb-0">Identify best-selling items and inventory trends.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
+            <a href="{% url 'customer_report' %}?type=outstanding" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift text-center group">
+                    <div class="icon-box bg-danger-subtle text-danger mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-person-exclamation fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Outstanding</h5>
+                    <p class="text-muted small mb-0">Track customers with pending dues and credit limits.</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3 animate__animated animate__fadeInUp" style="animation-delay: 0.4s;">
+            <a href="{% url 'customer_report' %}?type=advance" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm rounded-4 p-4 hover-lift text-center group">
+                    <div class="icon-box bg-info-subtle text-info mx-auto mb-4 rounded-circle d-flex align-items-center justify-content-center">
+                        <i class="bi bi-wallet2 fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-2">Advance Paid</h5>
+                    <p class="text-muted small mb-0">Customers with surplus balance in their accounts.</p>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <div class="text-center mt-5 pt-3 animate__animated animate__fadeInUp" style="animation-delay: 0.5s;">
+        <a href="{% url 'dashboard' %}" class="btn btn-light rounded-pill px-4 fw-bold text-muted transition-hover border">
+            <i class="bi bi-grid me-2"></i> Back to Dashboard
+        </a>
+    </div>
+
+</div>
+
+<style>
+    /* Card Animations */
+    .hover-lift {
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease;
+    }
+    .hover-lift:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.1) !important;
+    }
+    
+    /* Icon Scaling on Hover */
+    .icon-box {
+        width: 80px;
+        height: 80px;
+        transition: transform 0.3s ease;
+    }
+    .group:hover .icon-box {
+        transform: scale(1.1);
+    }
+
+    /* Custom Color Palettes */
+    .bg-primary-subtle { background-color: #e0e7ff !important; }
+    .text-primary { color: #4338ca !important; }
+    
+    .bg-success-subtle { background-color: #dcfce7 !important; }
+    .text-success { color: #166534 !important; }
+
+    .bg-danger-subtle { background-color: #fee2e2 !important; }
+    .text-danger { color: #991b1b !important; }
+
+    .bg-info-subtle { background-color: #cffafe !important; }
+    .text-info { color: #0891b2 !important; }
+
+    /* Typography */
+    .tracking-wide { letter-spacing: 0.1em; }
+    .transition-hover:active { transform: scale(0.98); }
+</style>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base_public.html' %}
+{% block title %}Deactivated Customers | LedgerX{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-0 text-danger">Deactivated Accounts</h2>
+            <p class="text-muted small mb-0">Restore customers to access their ledger.</p>
+        </div>
+        <a href="{% url 'customer_list' %}" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+            ← Back to Active List
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-2 animate__animated animate__fadeInUp">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-0 ps-3">🔍</span>
+            <input 
+                type="text" 
+                id="searchInput"
+                class="form-control border-0 shadow-none" 
+                placeholder="Search archives instantly..." 
+            >
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp" style="min-height: 400px;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">NAME</th>
+                        <th class="py-3 border-0">MOBILE</th>
+                        <th class="py-3 border-0">STATUS</th>
+                        <th class="text-end pe-4 py-3 border-0">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    {% for customer in customers %}
+                    <tr class="customer-row opacity-75">
+                        <td class="ps-4 py-3 border-0 search-name">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary-subtle text-secondary rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" 
+                                     style="width: 40px; height: 40px;">
+                                    {{ customer.name|slice:":1"|upper }}
+                                </div>
+                                <span class="fw-bold text-muted">{{ customer.name }}</span>
+                            </div>
+                        </td>
+
+                        <td class="border-0 text-muted search-mobile">{{ customer.mobile }}</td>
+
+                        <td class="border-0">
+                            <span class="badge bg-danger-subtle text-danger border border-danger px-3 rounded-pill">Inactive</span>
+                        </td>
+
+                        <td class="text-end pe-4 border-0">
+                            <button 
+                                class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm"
+                                onclick="openRestoreModal('{{ customer.id }}', '{{ customer.name|escapejs }}')">
+                                ♻️ Restore
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="noDataRow">
+                        <td colspan="4" class="text-center py-5 border-0">
+                            <div class="mb-3 display-1 opacity-25">🗑️</div>
+                            <h5 class="fw-bold text-muted">No deactivated accounts</h5>
+                            <p class="text-muted small">All your customers are currently active.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center" id="paginationControls">
+            <button class="btn btn-sm btn-light rounded-circle mx-1" id="prevBtn">←</button>
+            <span class="mx-3 small fw-bold text-muted align-self-center" id="pageIndicator">Page 1</span>
+            <button class="btn btn-sm btn-light rounded-circle mx-1" id="nextBtn">→</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold">Restore Account?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center py-4 px-4">
+        <div class="fs-1 mb-3">♻️</div>
+        <p class="text-muted mb-0">Are you sure you want to reactivate <strong id="modalCustomerName" class="text-dark"></strong>?</p>
+        <p class="small text-muted mt-1">This will move them back to your active list.</p>
+      </div>
+      <div class="modal-footer border-0 pb-4 px-4 d-flex flex-column-reverse flex-sm-row justify-content-center gap-2">
+        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold w-100 w-sm-auto" data-bs-dismiss="modal">Cancel</button>
+        <a href="#" id="modalConfirmBtn" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm w-100 w-sm-auto">Yes, Restore</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("searchInput");
+    const tableBody = document.getElementById("tableBody");
+    const rows = Array.from(document.querySelectorAll(".customer-row")); // Get all rows
+    const noDataRow = document.getElementById("noDataRow");
+    
+    // Pagination Variables
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    let filteredRows = rows; // Initially, all rows are "filtered"
+
+    // 1. SEARCH FUNCTION
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        
+        // Filter rows in memory
+        filteredRows = rows.filter(row => {
+            const name = row.querySelector(".search-name").innerText.toLowerCase();
+            const mobile = row.querySelector(".search-mobile").innerText.toLowerCase();
+            return name.includes(query) || mobile.includes(query);
+        });
+
+        // Reset to page 1 and render
+        currentPage = 1;
+        renderTable();
+    });
+
+    // 2. RENDER FUNCTION (Handles Pagination & Visibility)
+    function renderTable() {
+        // Hide ALL rows first
+        rows.forEach(row => row.style.display = "none");
+
+        // Calculate Paging
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageRows = filteredRows.slice(start, end);
+
+        // Show rows for current page
+        pageRows.forEach(row => {
+            row.style.display = "table-row";
+            row.classList.add("animate__animated", "animate__fadeIn");
+        });
+
+        // Handle "No Data" Row
+        if (filteredRows.length === 0) {
+            if (noDataRow) noDataRow.style.display = "table-row";
+        } else {
+            if (noDataRow) noDataRow.style.display = "none";
+        }
+
+        // Update Controls
+        document.getElementById("pageIndicator").innerText = `Page ${currentPage} of ${totalPages}`;
+        document.getElementById("prevBtn").disabled = currentPage === 1;
+        document.getElementById("nextBtn").disabled = currentPage === totalPages;
+        
+        // Hide controls if only 1 page
+        const controls = document.getElementById("paginationControls");
+        if (totalPages <= 1) {
+            controls.style.opacity = "0.5";
+            controls.style.pointerEvents = "none";
+        } else {
+            controls.style.opacity = "1";
+            controls.style.pointerEvents = "auto";
+        }
+    }
+
+    // 3. PAGINATION CLICK HANDLERS
+    document.getElementById("prevBtn").onclick = () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    };
+    document.getElementById("nextBtn").onclick = () => {
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderTable();
+        }
+    };
+
+    // Initial Render
+    renderTable();
+});
+
+// 4. MODAL LOGIC
+function openRestoreModal(id, name) {
+    document.getElementById('modalCustomerName').innerText = name;
+    // Set the URL dynamically
+    document.getElementById('modalConfirmBtn').href = `/customers/${id}/reactivate/`;
+    
+    // Show Modal
+    var myModal = new bootstrap.Modal(document.getElementById('restoreModal'));
+    myModal.show();
+}
+</script>
+{% endblock %}

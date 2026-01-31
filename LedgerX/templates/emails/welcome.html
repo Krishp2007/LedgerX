@@ -1,0 +1,46 @@
+{% extends "emails/base_email.html" %}
+{% block content %}
+
+<h3>Welcome to LedgerX! 🚀</h3>
+
+<p>
+    Hi <strong>{{ owner_name }}</strong>,
+</p>
+
+<p>
+    Congratulations! Your shop, <strong>{{ shop_name }}</strong>, has been successfully registered on LedgerX.
+</p>
+
+<p>
+    You can now:
+</p>
+<ul style="padding-left: 20px; color:#374151;">
+    <li style="margin-bottom: 8px;">Manage your customers & credits (Udhar).</li>
+    <li style="margin-bottom: 8px;">Track daily sales & inventory.</li>
+    <li style="margin-bottom: 8px;">Share QR codes for transparent billing.</li>
+</ul>
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ dashboard_url }}" style="
+        background-color: #10b981;
+        color: white;
+        padding: 12px 24px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: bold;
+        display: inline-block;
+    ">
+        Go to Dashboard
+    </a>
+</div>
+
+<p>
+    If you have any questions, feel free to reply to this email.
+</p>
+
+<p>
+    Best regards,<br>
+    The LedgerX Team
+</p>
+
+{% endblock %}

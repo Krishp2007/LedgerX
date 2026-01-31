@@ -1,0 +1,202 @@
+{% extends 'base_public.html' %}
+{% load static %}
+
+{% block title %}Dashboard | LedgerX{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
+    
+{% block content %}
+
+<div class="container py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-5 animate__animated animate__fadeIn">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold mb-0">Business Overview</h2>
+            <p class="text-muted small">Welcome back, {{ request.user.shop.owner_name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_sale' %}" class="btn btn-primary shadow-sm fw-bold">
+                <span class="me-1">+</span> New Sale
+            </a>
+            <a href="{% url 'add_payment' %}" class="btn btn-outline-dark rounded-pill px-4 py-2 shadow-sm fw-bold">
+                <span class="me-1">+</span> Payment
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5 animate__animated animate__fadeInUp">
+        
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'transaction_list' %}?date=today&type=CASH,CREDIT" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-emerald border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Sales</p>
+                    <h3 class="fw-bold text-emerald">
+    ₹<span class="stat-value" data-value="{{ todays_sales }}">{{ todays_sales }}</span>
+</h3>
+                    <small class="text-muted x-small">(Invoice Value)</small>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'transaction_list' %}?date=today&type=PAYMENT,CASH" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-success border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Today's Inflow</p>
+                    <h3 class="fw-bold text-success">
+    ₹<span class="stat-value" data-value="{{ todays_payments }}">{{ todays_payments }}</span>
+</h3>
+                    <small class="text-muted x-small">(Cash + Received)</small>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'product_out_of_stock' %}" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-danger border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Low Stock</p>
+                    <h3 class="fw-bold text-danger">
+    <span class="stat-value" data-value="{{ low_stock_count }}">{{ low_stock_count }}</span>
+</h3>
+                    <small class="text-muted x-small">(Items &lt; 10)</small>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <a href="{% url 'customer_list' %}" class="text-decoration-none text-dark d-block h-100 hover-scale">
+                <div class="card p-4 text-center border-bottom border-primary border-4 h-100 shadow-sm stat-card">
+                    <p class="text-muted small fw-bold mb-1 text-uppercase tracking-wider">Active Customers</p>
+                    <h3 class="fw-bold text-primary">
+    <span class="stat-value" data-value="{{ total_customers }}">{{ total_customers }}</span>
+</h3>
+                    <small class="text-muted x-small">(Total Profiles)</small>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-5 animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="col-6 col-md-3">
+            <a href="{% url 'customer_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">👥</div>
+                    <div class="small fw-bold text-dark">Customers</div>
+                    <p class="text-muted x-small mb-0">Manage credit accounts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'product_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">📦</div>
+                    <div class="small fw-bold text-dark">Inventory</div>
+                    <p class="text-muted x-small mb-0">Track stock levels</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'transaction_list' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">🧾</div>
+                    <div class="small fw-bold text-dark">History</div>
+                    <p class="text-muted x-small mb-0">Review all receipts</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-6 col-md-3">
+            <a href="{% url 'reports_home' %}" class="text-decoration-none">
+                <div class="card p-4 text-center hover-up bg-white h-100 border-0 shadow-sm">
+                    <div class="fs-2 mb-2">📈</div>
+                    <div class="small fw-bold text-dark">Reports</div>
+                    <p class="text-muted x-small mb-0">Growth analytics</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm animate__animated animate__fadeInUp animate__delay-2s overflow-hidden mb-5">
+        <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0 text-dark">Recent Activity</h5>
+            <a href="{% url 'transaction_list' %}" class="small text-decoration-none fw-bold text-emerald">View History →</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="bg-light text-muted small">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">ACTIVITY</th>
+                        <th class="py-3 border-0">DETAILS</th>
+                        <th class="text-end pe-4 py-3 border-0">TIME</th>
+                    </tr>
+                </thead>
+                <tbody>
+    {% for item in recent_activities %}
+        <tr style="cursor: pointer;" 
+            onclick="window.location='{% if item.transaction_type %}{% url 'transaction_detail' item.id %}{% else %}{% url 'customer_detail' item.id %}{% endif %}'">
+            
+            <td class="ps-4 border-0">
+                <div class="d-flex align-items-center">
+                    {% if item.transaction_type %}
+                        {% if item.transaction_type == 'PAYMENT' %}
+                            <div class="bg-success-subtle text-success rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">💰</div>
+                            <div>
+                                <div class="fw-bold text-dark">Payment Received</div>
+                                <span class="text-muted x-small">Credit Settlement</span>
+                            </div>
+                        {% else %}
+                            <div class="bg-primary-subtle text-primary rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">🧾</div>
+                            <div>
+                                <div class="fw-bold text-dark">New Sale</div>
+                                <span class="text-muted x-small">{{ item.get_transaction_type_display }}</span>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="bg-warning-subtle text-warning rounded-circle p-2 me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">👤</div>
+                        <div>
+                            <div class="fw-bold text-dark">New Customer</div>
+                            <span class="text-muted x-small">Account Created</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </td>
+
+            <td class="border-0">
+                {% if item.transaction_type %}
+                    <div class="fw-bold text-dark">₹{{ item.total_amount }}</div>
+                    <small class="text-muted">{% if item.customer %}{{ item.customer.name }}{% else %}Cash Sale{% endif %}</small>
+                {% else %}
+                    <div class="fw-bold text-dark">{{ item.name }}</div>
+                    <small class="text-muted">{{ item.mobile }}</small>
+                {% endif %}
+            </td>
+
+            <td class="text-end pe-4 border-0">
+                <span class="badge bg-light text-muted border fw-normal">{{ item.created_at|timesince }} ago</span>
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="3" class="text-center py-5 text-muted small border-0">No recent activity yet 🚀</td></tr>
+    {% endfor %}
+</tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-top animate__animated animate__fadeIn">
+        <p class="text-muted small fw-bold text-uppercase mb-3 tracking-widest">Account Management</p>
+        <div class="d-flex flex-wrap gap-3">
+            <a href="{% url 'account_settings' %}" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-dark border">
+                ⚙️ Settings
+            </a>
+            <a href="#" 
+               class="btn btn-light rounded-pill px-4 shadow-sm fw-bold small text-danger border"
+               data-bs-toggle="modal" 
+               data-bs-target="#logoutModal">
+                🚪 Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

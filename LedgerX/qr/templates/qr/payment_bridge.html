@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pay {{ shop_name }}</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 40px 20px; background-color: #f8f9fa; }
+        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
+        .btn { background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; margin-top: 20px; }
+        h2 { color: #333; margin-bottom: 10px; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>⚡ Payment Request</h2>
+        <p>Paying <strong>{{ shop_name }}</strong></p>
+        <h1 style="color: #10b981;">₹{{ amount }}</h1>
+        
+        <p>Opening your payment app...</p>
+        <a id="payBtn" href="#" class="btn">Pay Now</a>
+    </div>
+
+    <script>
+        // --- ⚙️ CONFIGURATION ⚙️ ---
+        // TODO: In the future, you can add a 'upi_id' field to your Shop model
+        const myUPI = "krishpatel2136@oksbi";  // <--- REPLACE THIS WITH YOUR REAL UPI ID
+        
+        // Dynamic Data from Django
+        const myName = "{{ shop_name }}"; 
+        const amount = "{{ amount }}"; 
+
+        if (amount && amount > 0) {
+            // Construct UPI Link
+            const upiLink = `upi://pay?pa=${myUPI}&pn=${myName}&am=${amount}&cu=INR&tn=ShopBill`;
+
+            // Set button and Redirect
+            document.getElementById("payBtn").href = upiLink;
+            window.location.href = upiLink;
+        } else {
+            document.body.innerHTML = "<h3>Error: Invalid Amount</h3>";
+        }
+    </script>
+
+</body>
+</html>

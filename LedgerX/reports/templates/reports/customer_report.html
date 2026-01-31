@@ -1,0 +1,224 @@
+{% extends 'base_public.html' %}
+{% block title %}
+    {% if report_type == 'advance' %}Advance Payments{% else %}Outstanding Report{% endif %} | LedgerX
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3 animate__animated animate__fadeIn">
+        <div>
+            <h2 class="fw-bold mb-1 d-flex align-items-center gap-2">
+                {% if report_type == 'advance' %}
+                    <span class="text-success">🟢</span> Advance Payments
+                {% else %}
+                    <span class="text-danger">🔴</span> Outstanding Report
+                {% endif %}
+            </h2>
+            <p class="text-muted small mb-0">
+                {% if report_type == 'advance' %}
+                    List of customers with surplus balance (Advance).
+                {% else %}
+                    List of customers with pending dues (Outstanding).
+                {% endif %}
+            </p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-dark rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-2 animate__animated animate__fadeInUp">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-0 ps-3">
+                <i class="bi bi-search text-muted"></i>
+            </span>
+            <input 
+                type="text" 
+                id="searchInput"
+                class="form-control border-0 shadow-none" 
+                placeholder="Search by customer name or mobile..." 
+                autocomplete="off"
+            >
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden animate__animated animate__fadeInUp" style="min-height: 400px;">
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover text-nowrap">
+                <thead class="bg-light text-muted small uppercase">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">Customer</th>
+                        <th class="py-3 border-0">Mobile</th>
+                        <th class="text-end pe-4 py-3 border-0">
+                            {% if report_type == 'advance' %}Advance Amount{% else %}Pending Amount{% endif %}
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    {% for item in report %}
+                    <tr class="report-row" style="cursor: pointer;" onclick="window.location='{% url 'customer_detail' item.customer.id %}'">
+                        
+                        <td class="ps-4 border-0">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3 border text-muted fw-bold" style="width: 40px; height: 40px; font-size: 0.8rem;">
+                                    {{ item.customer.name|slice:":2"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark search-name">{{ item.customer.name }}</div>
+                                    <div class="x-small text-muted d-block d-md-none search-mobile-sm">{{ item.customer.mobile }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="border-0 text-muted search-mobile d-none d-md-table-cell">
+                            {{ item.customer.mobile }}
+                        </td>
+
+                        <td class="text-end pe-4 border-0">
+                            {% if report_type == 'advance' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill fw-bold">
+                                    ₹{{ item.balance }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill fw-bold">
+                                    ₹{{ item.balance }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr id="emptyDbRow">
+                        <td colspan="3" class="text-center py-5 border-0 text-muted">
+                            <div class="mb-2 display-4 opacity-25">📂</div>
+                            <h5 class="fw-bold text-muted">No records found</h5>
+                            <p class="small mb-0">There are no customers in this category.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                    <tr id="noDataRow" style="display: none;">
+                        <td colspan="3" class="text-center py-5 border-0">
+                            <div class="mb-2 display-4 opacity-25">🔍</div>
+                            <h5 class="fw-bold text-muted">No matching records</h5>
+                            <button onclick="clearSearch()" class="btn btn-sm btn-outline-dark rounded-pill px-3 mt-2">Clear Search</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0 py-3 d-flex justify-content-center" id="paginationControls">
+            <button class="btn btn-sm btn-light rounded-circle mx-1 border shadow-sm" id="prevBtn" style="width: 32px; height: 32px;">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <span class="mx-3 small fw-bold text-muted align-self-center" id="pageIndicator">Page 1</span>
+            <button class="btn btn-sm btn-light rounded-circle mx-1 border shadow-sm" id="nextBtn" style="width: 32px; height: 32px;">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .x-small { font-size: 0.75rem; }
+    /* Row Hover Effect */
+    .report-row:hover { background-color: #f8f9fa; }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("searchInput");
+    const rows = Array.from(document.querySelectorAll(".report-row"));
+    const noDataRow = document.getElementById("noDataRow");
+    const emptyDbRow = document.getElementById("emptyDbRow");
+    const controls = document.getElementById("paginationControls");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const pageIndicator = document.getElementById("pageIndicator");
+
+    // Config
+    const rowsPerPage = 10;
+    let currentPage = 1;
+    let filteredRows = rows; 
+
+    // 1. Search Logic
+    searchInput.addEventListener("input", function() {
+        const query = this.value.toLowerCase().trim();
+        
+        filteredRows = rows.filter(row => {
+            const name = row.querySelector(".search-name").innerText.toLowerCase();
+            const mobile = row.querySelector(".search-mobile").innerText.toLowerCase();
+            const mobileSm = row.querySelector(".search-mobile-sm") ? row.querySelector(".search-mobile-sm").innerText.toLowerCase() : "";
+            
+            return name.includes(query) || mobile.includes(query) || mobileSm.includes(query);
+        });
+
+        currentPage = 1; 
+        renderTable();
+    });
+
+    window.clearSearch = function() {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
+    }
+
+    // 2. Render Table
+    function renderTable() {
+        // Hide all rows first
+        rows.forEach(row => row.style.display = "none");
+        
+        // Hide Empty/NoData rows
+        if(emptyDbRow) emptyDbRow.style.display = "none";
+        noDataRow.style.display = "none";
+
+        // Pagination Calculations
+        const totalPages = Math.ceil(filteredRows.length / rowsPerPage) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        
+        // Show current page rows
+        filteredRows.slice(start, end).forEach(row => {
+            row.style.display = "table-row";
+            row.classList.add("animate__animated", "animate__fadeIn");
+        });
+
+        // Handle Empty States
+        if (filteredRows.length === 0) {
+            // If original list was empty, show DB empty message
+            if (rows.length === 0 && emptyDbRow) {
+                emptyDbRow.style.display = "table-row";
+            } else {
+                // Otherwise show No Search Results
+                noDataRow.style.display = "table-row";
+            }
+            controls.style.display = 'none';
+        } else {
+            // Show pagination only if needed
+            controls.style.display = totalPages > 1 ? 'flex' : 'none';
+        }
+
+        // Update Controls UI
+        pageIndicator.innerText = `Page ${currentPage} of ${totalPages}`;
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+    }
+
+    // 3. Pagination Events
+    prevBtn.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); } };
+    nextBtn.onclick = () => { if (currentPage < Math.ceil(filteredRows.length / rowsPerPage)) { currentPage++; renderTable(); } };
+
+    // Initial Render
+    // Check if there's an empty DB state initially
+    if (rows.length === 0 && emptyDbRow) {
+        controls.style.display = 'none';
+        emptyDbRow.style.display = 'table-row';
+    } else {
+        renderTable();
+    }
+});
+</script>
+{% endblock %}

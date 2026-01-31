@@ -1,0 +1,289 @@
+{% extends 'base_public.html' %}
+{% block title %}Receive Payment | LedgerX{% endblock %}
+
+{% block content %}
+<style>
+    /* === EMERALD THEME === */
+    body { background-color: #f4f6f8; }
+    
+    .text-emerald { color: #10b981 !important; }
+    .bg-emerald { background-color: #10b981 !important; }
+    .btn-emerald { 
+        background-color: #10b981; 
+        color: white; 
+        border: none; 
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-emerald:hover { 
+        background-color: #059669; 
+        color: white; 
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+
+    /* === COMPACT CARD === */
+    .compact-card {
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+        border: none;
+        overflow: hidden;
+        background: white;
+    }
+
+    .form-focus:focus {
+        border-color: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    }
+
+    /* === SCROLLABLE CUSTOMER LIST === */
+    #customerListContainer {
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 8px;
+        /* 🟢 KEY FIX: Limits height to keep page short */
+        height: 200px; 
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+
+    #customerList {
+        overflow-y: auto;
+        flex-grow: 1; 
+        scrollbar-width: thin;
+    }
+    #customerList::-webkit-scrollbar { width: 4px; }
+    #customerList::-webkit-scrollbar-thumb { background-color: #d1fae5; border-radius: 4px; }
+
+    .customer-item {
+        cursor: pointer;
+        transition: background 0.1s;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 10px 12px;
+    }
+    .customer-item:hover { background-color: #f0fdf4; }
+    .customer-item.active { background-color: #ecfdf5; border-left: 3px solid #10b981; }
+
+    /* Pagination Bar */
+    .pagination-bar {
+        background: #f8f9fa;
+        padding: 5px 10px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .pagination-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #dee2e6;
+        background: white;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.7rem;
+        transition: all 0.2s;
+    }
+    .pagination-btn:hover:not(:disabled) { border-color: #10b981; color: #10b981; }
+    .pagination-btn:disabled { opacity: 0.5; cursor: default; }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            
+            <div class="card compact-card animate__animated animate__fadeInUp">
+                
+                <div class="bg-emerald text-white p-3 text-center">
+                    <h5 class="mb-0 fw-bold fs-6"><i class="bi bi-wallet2 me-2"></i>Receive Payment</h5>
+                </div>
+
+                <div class="p-3 p-md-4">
+                    <form method="post" id="paymentForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label x-small fw-bold text-muted text-uppercase tracking-wider mb-1">Select Customer</label>
+                            
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-emerald"></i></span>
+                                <input type="text" id="custSearch" class="form-control border-start-0 shadow-none form-focus" placeholder="Search name or mobile..." autocomplete="off">
+                                <input type="hidden" name="customer" id="selectedCustId" required>
+                            </div>
+                            
+                            <div id="customerError" class="text-danger x-small fw-bold mt-1 d-none">
+                                <i class="bi bi-exclamation-circle me-1"></i> Please select a customer.
+                            </div>
+
+                            <div id="customerListContainer">
+                                <div id="customerList">
+                                    </div>
+                                <div class="pagination-bar">
+                                    <button type="button" class="pagination-btn" onclick="changePage(-1)" id="prevBtn"><i class="bi bi-chevron-left"></i></button>
+                                    <span class="x-small fw-bold text-muted" id="pageIndicator">1</span>
+                                    <button type="button" class="pagination-btn" onclick="changePage(1)" id="nextBtn"><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label x-small fw-bold text-muted text-uppercase tracking-wider mb-1">Received Amount (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-0 fw-bold text-dark">₹</span>
+                                <input type="number" step="0.01" name="amount" id="amountInput" class="form-control bg-light border-0 shadow-none fw-bold text-dark fs-5 form-focus" placeholder="0.00" required>
+                            </div>
+                            <div id="amountError" class="text-danger x-small fw-bold mt-1 d-none">
+                                <i class="bi bi-exclamation-circle me-1"></i> Amount must be positive.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-emerald rounded-pill shadow-sm fw-bold">
+                                Confirm Payment
+                            </button>
+                            <a href="{% url 'transaction_list' %}" class="btn btn-light rounded-pill text-muted fw-bold small border-0">
+                                Cancel
+                            </a>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // 🟢 1. FORCE SCROLL TO TOP (Fixes "Bottom of Page" issue)
+    if (history.scrollRestoration) {
+        history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+
+    document.addEventListener("DOMContentLoaded", function() {
+        
+        // 🟢 2. SAFE DATA LOADING (Fixes "Unselectable Customer" bug)
+        // We use a JS array directly instead of parsing HTML attributes.
+        // This handles names with quotes (e.g., David "Dave") correctly using escapejs.
+        const customers = [
+            {% for c in customers %}
+            { 
+                id: "{{ c.id }}", 
+                name: "{{ c.name|escapejs }}", 
+                mobile: "{{ c.mobile|escapejs }}" 
+            },
+            {% endfor %}
+        ];
+
+        let filteredCustomers = customers;
+        const ITEMS_PER_PAGE = 5;
+        let currentPage = 1;
+
+        // --- Render List ---
+        function renderList() {
+            const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE) || 1;
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const listEl = document.getElementById('customerList');
+            listEl.innerHTML = '';
+            
+            const start = (currentPage - 1) * ITEMS_PER_PAGE;
+            const end = start + ITEMS_PER_PAGE;
+            const pageItems = filteredCustomers.slice(start, end);
+
+            const selectedId = document.getElementById('selectedCustId').value;
+
+            if (pageItems.length > 0) {
+                pageItems.forEach(c => {
+                    const isActive = (c.id === selectedId) ? 'active' : '';
+                    const item = document.createElement('div');
+                    item.className = `customer-item ${isActive}`;
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-dark small mb-0">${c.name}</div>
+                                <div class="x-small text-muted">${c.mobile}</div>
+                            </div>
+                            ${isActive ? '<i class="bi bi-check-circle-fill text-success small"></i>' : ''}
+                        </div>
+                    `;
+                    item.onclick = () => selectCustomer(c.id, c.name);
+                    listEl.appendChild(item);
+                });
+            } else {
+                listEl.innerHTML = `<div class="p-3 text-center text-muted x-small">No customers found.</div>`;
+            }
+
+            // Update Pagination Controls
+            document.getElementById('pageIndicator').innerText = `${currentPage}/${totalPages}`;
+            document.getElementById('prevBtn').disabled = (currentPage === 1);
+            document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+        }
+
+        window.changePage = function(delta) {
+            currentPage += delta;
+            renderList();
+        }
+
+        window.selectCustomer = function(id, name) {
+            document.getElementById('selectedCustId').value = id;
+            document.getElementById('custSearch').value = name;
+            document.getElementById('customerError').classList.add('d-none');
+            renderList(); // Re-render to show selection highlight
+        }
+
+        // --- Search Logic ---
+        document.getElementById('custSearch').addEventListener('keyup', function(e) {
+            const term = e.target.value.toLowerCase().trim();
+            if (term === '') {
+                filteredCustomers = customers;
+            } else {
+                filteredCustomers = customers.filter(c => 
+                    c.name.toLowerCase().includes(term) || c.mobile.includes(term)
+                );
+            }
+            currentPage = 1;
+            renderList();
+        });
+
+        // --- 3. VALIDATION (Negative Amount Fix) ---
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            let isValid = true;
+            const custId = document.getElementById('selectedCustId').value;
+            const amountInput = document.getElementById('amountInput');
+            const amount = parseFloat(amountInput.value);
+
+            // Check Customer
+            if (!custId) {
+                document.getElementById('customerError').classList.remove('d-none');
+                isValid = false;
+            } else {
+                document.getElementById('customerError').classList.add('d-none');
+            }
+
+            // Check Amount (Must be > 0)
+            if (isNaN(amount) || amount <= 0) {
+                document.getElementById('amountError').classList.remove('d-none');
+                amountInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                document.getElementById('amountError').classList.add('d-none');
+                amountInput.classList.remove('is-invalid');
+            }
+
+            if (!isValid) e.preventDefault();
+        });
+
+        // Initial Render
+        renderList();
+    });
+</script>
+{% endblock %}
