@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}LedgerX{% endblock %}</title>
 
-    {% comment %} favicon to be added {% endcomment %}
+    <link rel="icon" href="{% static 'images/favicon.png' %}" type="image/png">
+
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
 
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
@@ -59,7 +61,15 @@
           class="navbar-brand fw-bold d-flex align-items-center fs-3"
           href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}/{% endif %}"
         >
+<<<<<<< HEAD
           <h2 class="fw-bold">Ledger<span style="color: #10b981">X</span></h2>
+=======
+<<<<<<< HEAD
+          <h2 class="fw-bold">Ledger<span style="color: #10b981">X</span></h2>
+=======
+          <h2 class="fw-bold">Ledger<span style="color: #10b981; font-family: 'Pacifico', cursive;"> X</span></h2>
+>>>>>>> krish-payment
+>>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
         </a>
 
         <button
@@ -118,6 +128,15 @@
               </a>
             </li>
 
+<<<<<<< HEAD
+=======
+            <li class="nav-item">
+              <a class="nav-link px-3 fw-semibold" href="{% url 'contact' %}">
+                Contact Us
+              </a>
+            </li>
+
+>>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
             <li class="nav-item ms-lg-3">
               <a class="btn btn-primary px-4" href="{% url 'login' %}">
                 Login
@@ -131,6 +150,7 @@
     </nav>
 
     <div style="margin-top: 100px">
+<<<<<<< HEAD
         
         <div class="container">
             {% if messages %}
@@ -144,6 +164,28 @@
                     {% endif %}
                 {% endfor %}
             {% endif %}
+=======
+
+        <div class="container">
+            {# 🟢 CHANGE: We check the current URL name. If it is NOT an accounts view, we show messages. #}
+            {% with account_views="login register verify_registration_otp forgot_password verify_otp reset_password_confirm logout account_settings delete_shop_request delete_shop_verify check_username" %}
+            
+            {% if request.resolver_match.url_name not in account_views.split %}
+                {% if messages %}
+                    {% for message in messages %}
+                        {# Ignore modal-specific messages here, they show in popups #}
+                        {% if 'modal_' not in message.tags %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm fw-bold small animate__animated animate__fadeInDown" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endif %}
+            
+            {% endwith %}
+>>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
         </div>
       
       {% block content %}{% endblock %}

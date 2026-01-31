@@ -2,7 +2,6 @@ import uuid
 import random
 import requests
 import re  # For regex checking
-import resend  # 👈 New Import
 
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -13,11 +12,11 @@ from django.contrib import messages
 from django.conf import settings  # To access API Key
 from django.utils import timezone
 from django.template.loader import render_to_string
-from django.utils.html import strip_tags
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 
+from django.urls import reverse
 # Models
 from .models import Shop, PasswordResetOTP
 
@@ -89,8 +88,17 @@ def login_view(request):
                 # If email doesn't exist, auth will fail naturally below
                 username_to_auth = None
         else:
-            # It's a standard username
-            username_to_auth = login_input
+            # 🟢 2. CASE-INSENSITIVE USERNAME CHECK
+            # This compares BOTH stored DB value and Input as if they were lowercase.
+            # So 'Krish' == 'krish' is TRUE.
+            user_obj = User.objects.filter(username__iexact=login_input).first()
+            
+            if user_obj:
+                # If we found a match (e.g., found "Krish" when input was "krish")
+                # we use the REAL username "Krish" to authenticate.
+                username_to_auth = user_obj.username 
+            else:
+                username_to_auth = login_input
 
         # Authenticate using the resolved username
         user = authenticate(request, username=username_to_auth, password=password)
@@ -150,7 +158,7 @@ def register_view(request):
             return render(request, 'accounts/register.html', {'form_data': form_data})
 
         # --- 🛡️ 3. DUPLICATE CHECKS ---
-        if User.objects.filter(username=username).exists():
+        if User.objects.filter(username__iexact=username).exists():
             messages.error(request, 'Username already exists.')
             return render(request, 'accounts/register.html', {'form_data': form_data})
 
@@ -221,8 +229,13 @@ def verify_registration_otp_view(request):
             # 3. Login User
             login(request, user)
 
+            # 🟢 GENERATE DYNAMIC LINK
+        # This creates "http://127.0.0.1:8000/dashboard/" locally
+        # AND "https://www.your-site.com/dashboard/" on production automatically.
+            dashboard_link = request.build_absolute_uri(reverse('dashboard'))
+
             # 🚀 WELCOME EMAIL VIA BREVO
-            html = render_to_string('emails/welcome.html', {'owner_name': data['owner_name'], 'shop_name': data['shop_name']})
+            html = render_to_string('emails/welcome.html', {'owner_name': data['owner_name'], 'shop_name': data['shop_name'], 'dashboard_url': dashboard_link})
             send_brevo_email(data['email'], "Welcome to LedgerX!", html)
 
 
@@ -413,7 +426,7 @@ def account_settings(request):
             
             # Update Username (Unique Check)
             if new_username and new_username != user.username:
-                if User.objects.filter(username=new_username).exists():
+                if User.objects.filter(username__iexact=new_username).exists():
                     # 🟢 ADDING TAG: 'modal_edit_profile'
                     messages.error(request, "Username already taken.", extra_tags='modal_edit_profile')
                     return redirect('account_settings')
@@ -637,3 +650,4 @@ def check_username(request):
     is_taken = User.objects.filter(username__iexact=username).exclude(username=request.user.username).exists()
     
     return JsonResponse({'is_taken': is_taken})
+
