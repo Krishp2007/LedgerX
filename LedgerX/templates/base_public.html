@@ -61,15 +61,7 @@
           class="navbar-brand fw-bold d-flex align-items-center fs-3"
           href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}/{% endif %}"
         >
-<<<<<<< HEAD
-          <h2 class="fw-bold">Ledger<span style="color: #10b981">X</span></h2>
-=======
-<<<<<<< HEAD
-          <h2 class="fw-bold">Ledger<span style="color: #10b981">X</span></h2>
-=======
           <h2 class="fw-bold">Ledger<span style="color: #10b981; font-family: 'Pacifico', cursive;"> X</span></h2>
->>>>>>> krish-payment
->>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
         </a>
 
         <button
@@ -128,15 +120,12 @@
               </a>
             </li>
 
-<<<<<<< HEAD
-=======
             <li class="nav-item">
               <a class="nav-link px-3 fw-semibold" href="{% url 'contact' %}">
                 Contact Us
               </a>
             </li>
 
->>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
             <li class="nav-item ms-lg-3">
               <a class="btn btn-primary px-4" href="{% url 'login' %}">
                 Login
@@ -150,21 +139,6 @@
     </nav>
 
     <div style="margin-top: 100px">
-<<<<<<< HEAD
-        
-        <div class="container">
-            {% if messages %}
-                {% for message in messages %}
-                    {# Ignore modal-specific messages here, they show in popups #}
-                    {% if 'modal_' not in message.tags %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm fw-bold small animate__animated animate__fadeInDown" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            {% endif %}
-=======
 
         <div class="container">
             {# 🟢 CHANGE: We check the current URL name. If it is NOT an accounts view, we show messages. #}
@@ -185,7 +159,6 @@
             {% endif %}
             
             {% endwith %}
->>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
         </div>
       
       {% block content %}{% endblock %}
