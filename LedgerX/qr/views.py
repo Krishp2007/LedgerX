@@ -113,3 +113,17 @@ def qr_transaction_detail(request, secure_token, transaction_id):
             'items': items,  # 👈 pass pre-calculated data
         }
     )
+
+
+def payment_bridge_view(request):
+    """
+    Renders the UPI redirection page.
+    Expects 'amt' and 'shop_name' in GET parameters.
+    """
+    amount = request.GET.get('amt', 0)
+    shop_name = request.GET.get('name', 'Shop')
+    
+    return render(request, 'qr/payment_bridge.html', {
+        'amount': amount,
+        'shop_name': shop_name
+    })

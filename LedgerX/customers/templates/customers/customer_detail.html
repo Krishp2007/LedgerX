@@ -49,13 +49,20 @@
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm overflow-hidden mb-4 rounded-4" style="min-height: 500px;">
                 <div class="card-header bg-white py-3 px-4 border-0 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                    <h5 class="fw-bold mb-0 text-charcoal">Transaction Ledger</h5>
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'add_payment_for_customer' customer.id %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm">
-                            + Receive Payment
-                        </a>
-                    </div>
-                </div>
+    <h5 class="fw-bold mb-0 text-charcoal">Transaction Ledger</h5>
+    <div class="d-flex gap-2">
+        
+        {% if outstanding > 0 %}
+        <button onclick="sendWhatsAppReminder()" class="btn btn-sm btn-success rounded-pill px-3 fw-bold shadow-sm">
+            <i class="bi bi-whatsapp me-1"></i> Send Reminder
+        </button>
+        {% endif %}
+
+        <a href="{% url 'add_payment_for_customer' customer.id %}" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold shadow-sm">
+            + Receive Payment
+        </a>
+    </div>
+</div>
 
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0 text-nowrap" id="ledgerTable">
@@ -241,5 +248,34 @@
         // Initialize
         showPage(1);
     });
+
+
+    function sendWhatsAppReminder() {
+        // 1. Get Customer Details
+        const phone = "{{ customer.mobile }}";
+        const name = "{{ customer.name }}";
+        const amount = "{{ outstanding }}";
+        const shopName = "{{ customer.shop.shop_name }}";
+
+        // 2. Generate Absolute URLs (Works on Localhost & Production)
+        // This grabs the current domain (e.g., 192.168.1.5:8000 or ledgerx.com) automatically.
+        
+        // Ledger History Link
+        const ledgerUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'customer_ledger_qr' qr_token.secure_token %}";
+        
+        // Payment Link (Passes amount and shop name)
+        const payUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'payment_bridge' %}?amt=" + amount + "&name=" + encodeURIComponent(shopName);
+
+        // 3. Construct Message
+        const message = `Hello ${name}! 👋\n\n` +
+                        `This is a payment reminder from *${shopName}*.\n` +
+                        `Your total outstanding balance is: *₹${amount}*\n\n` +
+                        `💳 *Pay Now:* \n${payUrl}\n\n` +
+                        `📜 *View History:* \n${ledgerUrl}`;
+
+        // 4. Open WhatsApp
+        const waUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
+    }
 </script>
 {% endblock %}
