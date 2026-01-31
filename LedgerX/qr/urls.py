@@ -11,10 +11,7 @@ urlpatterns = [
     name='qr_transaction_detail'
     ),
 
-<<<<<<< HEAD
-=======
     # 🟢 NEW PATH
     path('pay/redirect/', views.payment_bridge_view, name='payment_bridge'),
 
->>>>>>> 3b92000656ef1a49f15fb9ea26511e4d22fe24a9
 ]
