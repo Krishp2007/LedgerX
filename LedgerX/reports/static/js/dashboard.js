@@ -60,3 +60,4 @@ function updateStat(el, newValue) {
         card.classList.remove("glow-green", "glow-red", "glow-neutral");
     }, 1200);
 }
+

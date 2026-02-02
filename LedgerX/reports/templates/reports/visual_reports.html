@@ -1,0 +1,246 @@
+{% extends 'base_public.html' %}
+{% block title %}Visual Intelligence | LedgerX{% endblock %}
+
+{% block content %}
+<style>
+    .dashboard-container { background: #f8fafc; min-height: 100vh; overflow-x: hidden; }
+    
+    .card-custom {
+        border: none;
+        border-radius: 1.25rem;
+        transition: all 0.3s ease;
+        background: #ffffff;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Better spacing on mobile */
+    @media (max-width: 768px) {
+        .chart-card-padding { padding: 1.25rem !important; }
+        .header-stack { flex-direction: column !important; align-items: flex-start !important; gap: 1rem; }
+        .btn-toggle { padding: 4px 8px !important; font-size: 0.7rem !important; }
+    }
+
+    .chart-title {
+        font-size: 0.85rem;
+        letter-spacing: 0.05rem;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .btn-group-toggle { background: #f1f5f9; padding: 3px; border-radius: 50px; display: flex; }
+    
+    .btn-toggle {
+        border: none;
+        border-radius: 50px !important;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 15px;
+        transition: 0.2s;
+        white-space: nowrap;
+    }
+
+    .section-divider { border-left: 4px solid #4338ca; padding-left: 15px; margin-bottom: 25px; }
+
+    .btn-back-hub {
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        border: 1px solid #e2e8f0;
+        background: white;
+        white-space: nowrap;
+    }
+</style>
+
+<div class="dashboard-container py-3 py-md-4">
+    <div class="container-fluid container-lg">
+        <div class="d-flex justify-content-between align-items-center mb-4 mb-md-5 header-stack animate__animated animate__fadeIn">
+            <div>
+                <h2 class="fw-bold mb-0 fs-3 fs-md-2">Business <span class="text-primary">Intelligence</span></h2>
+                <p class="text-muted small mb-0">Interactive analytical insights for your shop.</p>
+            </div>
+            <a href="{% url 'reports_home' %}" class="btn btn-back-hub px-3 px-md-4 py-2 shadow-sm">
+                <i class="bi bi-arrow-left me-1 me-md-2"></i>Back to Hub
+            </a>
+        </div>
+
+        <div class="section-divider">
+            <h5 class="fw-bold m-0 text-dark small text-uppercase tracking-wider">Financial & Liquidity</h5>
+        </div>
+        <div class="row g-3 g-md-4 mb-4 mb-md-5">
+            <div class="col-12">
+                <div class="card card-custom p-3 p-md-4 chart-card-padding">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-wallet2 text-primary fs-5 me-3"></i>
+                            <h6 class="chart-title m-0 text-uppercase">Sales vs Collections</h6>
+                        </div>
+                        <div class="btn-group btn-group-toggle align-self-start align-self-sm-center">
+                            <button onclick="updateChart('liq', 'weekly')" class="btn btn-toggle btn-primary btn-liq-weekly">Weekly</button>
+                            <button onclick="updateChart('liq', 'monthly')" class="btn btn-toggle btn-light btn-liq-monthly">Monthly</button>
+                            <button onclick="updateChart('liq', 'all_time')" class="btn btn-toggle btn-light btn-liq-all_time">All Time</button>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 300px; height: 40vh; min-height: 250px; max-height: 400px;">
+                        <canvas id="liquidityChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <h5 class="fw-bold m-0 text-dark small text-uppercase tracking-wider">Cash Flow & Risk Control</h5>
+        </div>
+        <div class="row g-3 g-md-4 mb-4 mb-md-5">
+            <div class="col-12 col-xl-6">
+                <div class="card card-custom p-3 p-md-4 h-100 chart-card-padding">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+                        <h6 class="chart-title m-0 text-uppercase">Payment Velocity</h6>
+                        <div class="btn-group btn-group-toggle align-self-start">
+                            <button onclick="updateChart('vel', 'weekly')" class="btn btn-toggle btn-primary btn-vel-weekly">W</button>
+                            <button onclick="updateChart('vel', 'monthly')" class="btn btn-toggle btn-light btn-vel-monthly">M</button>
+                            <button onclick="updateChart('vel', 'all_time')" class="btn btn-toggle btn-light btn-vel-all_time">A</button>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 250px;"><canvas id="velocityChart"></canvas></div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-6">
+                <div class="card card-custom p-3 p-md-4 h-100 border-start border-danger border-4 chart-card-padding">
+                    <h6 class="chart-title mb-4 text-uppercase">Highest Pending Dues</h6>
+                    <div style="position: relative; height: 250px;"><canvas id="debtChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-divider">
+            <h5 class="fw-bold m-0 text-dark small text-uppercase tracking-wider">Inventory Performance</h5>
+        </div>
+        <div class="row g-3 g-md-4 mb-5">
+            <div class="col-12">
+                <div class="card card-custom p-3 p-md-4 chart-card-padding">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-4 gap-3">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-box-seam text-success fs-5 me-3"></i>
+                            <h6 class="chart-title m-0 text-uppercase">Top 5 Best Sellers</h6>
+                        </div>
+                        <div class="btn-group btn-group-toggle align-self-start">
+                            <button onclick="updateChart('prod', 'weekly')" class="btn btn-toggle btn-primary btn-prod-weekly">Weekly</button>
+                            <button onclick="updateChart('prod', 'monthly')" class="btn btn-toggle btn-light btn-prod-monthly">Monthly</button>
+                            <button onclick="updateChart('prod', 'all_time')" class="btn btn-toggle btn-light btn-prod-all_time">All Time</button>
+                        </div>
+                    </div>
+                    <div style="position: relative; height: 320px;"><canvas id="productChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const dataSets = {
+        weekly: {{ weekly_json|safe }},
+        monthly: {{ monthly_json|safe }},
+        all_time: {{ all_time_json|safe }}
+    };
+    const debtLabels = {{ debt_names|safe }};
+    const debtValues = {{ debt_values|safe }};
+
+    let charts = {};
+    const chartPadding = { padding: { left: 10, right: 10, top: 10, bottom: 10 } };
+
+    window.onload = function() {
+        const start = dataSets.weekly;
+        const isMobile = window.innerWidth < 768;
+
+        // 1. Liquidity
+        charts.liq = new Chart(document.getElementById('liquidityChart'), {
+            type: 'line',
+            data: { labels: start.labels, datasets: [
+                { label: 'Sales', data: start.sales, borderColor: '#4338ca', stepped: true, fill: false, borderWidth: 2.5, pointRadius: 2 },
+                { label: 'Collections', data: start.collections, borderColor: '#10b981', stepped: true, fill: false, borderWidth: 2.5, pointRadius: 2 }
+            ]},
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                layout: chartPadding,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+                scales: { x: { ticks: { maxRotation: 45, font: { size: 10 } } } }
+            }
+        });
+
+        // 2. Velocity
+        const vCtx = document.getElementById('velocityChart').getContext('2d');
+        const grad = vCtx.createLinearGradient(0, 0, 0, 250);
+        grad.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+        grad.addColorStop(1, 'rgba(59, 130, 246, 0)');
+        charts.vel = new Chart(vCtx, {
+            type: 'line',
+            data: { labels: start.labels, datasets: [{ label: 'Cash Flow', data: start.collections, fill: true, backgroundColor: grad, borderColor: '#3b82f6', tension: 0.4, pointRadius: 0 }]},
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: { x: { ticks: { display: !isMobile } } } 
+            }
+        });
+
+        // 3. Debt
+        new Chart(document.getElementById('debtChart'), {
+            type: 'bar',
+            data: { labels: debtLabels, datasets: [{ label: 'Amount Due', data: debtValues, backgroundColor: '#f43f5e', borderRadius: 6 }]},
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                indexAxis: isMobile ? 'y' : 'x' // Swap axis on mobile for readability
+            }
+        });
+
+        // 4. Products (Responsive Legend)
+        charts.prod = new Chart(document.getElementById('productChart'), {
+            type: 'doughnut',
+            data: { labels: start.p_names, datasets: [{ 
+                data: start.p_qtys, 
+                backgroundColor: ['#4338ca', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'], 
+                hoverOffset: 15 
+            }]},
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                cutout: '70%', 
+                plugins: { 
+                    legend: { 
+                        position: isMobile ? 'bottom' : 'right',
+                        labels: { usePointStyle: true, padding: isMobile ? 10 : 20, font: { size: 13 } }
+                    } 
+                } 
+            }
+        });
+    };
+
+    function updateChart(chartKey, timeframe) {
+        const d = dataSets[timeframe];
+        const chart = charts[chartKey];
+        
+        ['weekly', 'monthly', 'all_time'].forEach(tf => {
+            const btn = document.querySelector(`.btn-${chartKey}-${tf}`);
+            if(btn) btn.className = `btn btn-toggle btn-${tf === timeframe ? 'primary' : 'light'} btn-${chartKey}-${tf}`;
+        });
+
+        if (chartKey === 'liq') {
+            chart.data.labels = d.labels;
+            chart.data.datasets[0].data = d.sales;
+            chart.data.datasets[1].data = d.collections;
+        } else if (chartKey === 'vel') {
+            chart.data.labels = d.labels;
+            chart.data.datasets[0].data = d.collections;
+        } else if (chartKey === 'prod') {
+            chart.data.labels = d.p_names;
+            chart.data.datasets[0].data = d.p_qtys;
+        }
+        chart.update();
+    }
+</script>
+{% endblock %}

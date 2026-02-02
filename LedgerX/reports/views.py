@@ -3,8 +3,11 @@ from django.shortcuts import render
 
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import Sum,Q, Count, Avg, F, ExpressionWrapper, fields
+from django.db import models
 from django.utils import timezone
+from datetime import timedelta
+import json
 
 from products.models import Product  # 🟢 Added Import
 
@@ -64,6 +67,8 @@ def dashboard(request):
         key=attrgetter('created_at'),
         reverse=True
     )[:5]
+
+
 
     return render(
         request,
@@ -183,5 +188,59 @@ def reports_home(request):
     Reports landing page.
     Shows links to different reports.
     """
-
     return render(request, 'reports/reports_home.html')
+
+
+
+@login_required
+def visual_reports(request):
+    shop = request.user.shop
+    today = timezone.localtime(timezone.now()).date()
+
+    def get_stats(days=None):
+        """Helper to fetch stats. None = All Time."""
+        filters = Q(shop=shop)
+        if days:
+            start_date = today - timedelta(days=days)
+            filters &= Q(transaction_date__date__gte=start_date)
+
+        # 1. Liquidity Data
+        liq = Transaction.objects.filter(filters).values('transaction_date__date').annotate(
+            sales=Sum('total_amount', filter=Q(transaction_type__in=['CASH', 'CREDIT'])),
+            collections=Sum('total_amount', filter=Q(transaction_type__in=['CASH', 'PAYMENT']))
+        ).order_by('transaction_date__date')
+        
+        # 2. Products Data
+        prod = TransactionItem.objects.filter(
+            transaction__shop=shop, 
+            transaction__transaction_date__date__gte=today - timedelta(days=days) if days else timezone.make_aware(timezone.datetime.min).date()
+        ).values('product__name').annotate(qty=Sum('quantity')).order_by('-qty')[:5]
+            
+        return {
+            'labels': [l['transaction_date__date'].strftime('%d %b') for l in liq],
+            'sales': [float(l['sales'] or 0) for l in liq],
+            'collections': [float(l['collections'] or 0) for l in liq],
+            'p_names': [p['product__name'] for p in prod],
+            'p_qtys': [int(p['qty'] or 0) for p in prod]
+        }
+
+    # Fetch debt data
+    customers = Customer.objects.filter(shop=shop, is_active=True)
+    debt_names, debt_values = [], []
+    for c in customers:
+        credit = Transaction.objects.filter(customer=c, transaction_type='CREDIT').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        pay = Transaction.objects.filter(customer=c, transaction_type='PAYMENT').aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+        bal = float(credit - pay)
+        if bal > 0:
+            debt_names.append(c.name)
+            debt_values.append(bal)
+
+    context = {
+        'weekly_json': json.dumps(get_stats(7)),
+        'monthly_json': json.dumps(get_stats(30)),
+        'all_time_json': json.dumps(get_stats(None)),
+        'debt_names': json.dumps(debt_names[:5]),
+        'debt_values': json.dumps(debt_values[:5]),
+    }
+    return render(request, 'reports/visual_reports.html', context)
+
