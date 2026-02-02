@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from .models import Product
-
+import csv
 
 # Create your views here.
 @login_required
@@ -152,4 +152,29 @@ def product_deactivate(request, product_id):
 
     messages.info(request, 'Product removed from active list')
     return redirect('product_list')
+
+
+@login_required
+def export_inventory_csv(request):
+    shop = request.user.shop
+    products = Product.objects.filter(shop=shop, is_active=True).order_by('name')
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment; filename="inventory_export.csv"'
+
+    # 🟢 Add the UTF-8 BOM to fix the "â‚¹" symbol in Excel
+    response.write(u'\ufeff'.encode('utf8'))
+
+    writer = csv.writer(response)
+    writer.writerow(['Product Name', 'Category', 'Price (₹)', 'Stock Quantity'])
+
+    for product in products:
+        writer.writerow([
+            product.name,
+            product.category or 'General',
+            product.default_price,
+            product.stock_quantity
+        ])
+
+    return response
 
