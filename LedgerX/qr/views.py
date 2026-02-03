@@ -115,15 +115,32 @@ def qr_transaction_detail(request, secure_token, transaction_id):
     )
 
 
+import base64
+from io import BytesIO
+from django.shortcuts import render
+
 def payment_bridge_view(request):
     """
-    Renders the UPI redirection page.
-    Expects 'amt' and 'shop_name' in GET parameters.
+    Renders the Payment Page with a generated QR Code.
     """
     amount = request.GET.get('amt', 0)
     shop_name = request.GET.get('name', 'Shop')
     
+    # 🟢 1. Configuration (Use the ID you provided)
+    my_upi = "krishpatel2136@oksbi" 
+
+    # 🟢 2. Construct UPI Link
+    upi_link = f"upi://pay?pa={my_upi}&pn={shop_name}&am={amount}&cu=INR&tn=ShopBill"
+
+    # 🟢 3. Generate QR Code Image (Server Side)
+    qr = qrcode.make(upi_link)
+    buffer = BytesIO()
+    qr.save(buffer, format="PNG")
+    img_str = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
     return render(request, 'qr/payment_bridge.html', {
         'amount': amount,
-        'shop_name': shop_name
+        'shop_name': shop_name,
+        'upi_link': upi_link,  # Pass link to template
+        'qr_image': img_str    # Pass QR image to template
     })

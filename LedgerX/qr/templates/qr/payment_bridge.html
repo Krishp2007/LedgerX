@@ -7,9 +7,18 @@
     <style>
         body { font-family: sans-serif; text-align: center; padding: 40px 20px; background-color: #f8f9fa; }
         .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 400px; margin: 0 auto; }
-        .btn { background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; margin-top: 20px; }
+        .btn { background: #10b981; color: white; padding: 15px 30px; text-decoration: none; border-radius: 50px; font-size: 18px; font-weight: bold; display: inline-block; margin-top: 20px; cursor: pointer; border: none; }
+        .btn:hover { background-color: #059669; }
         h2 { color: #333; margin-bottom: 10px; }
         p { color: #666; }
+        
+        /* 🟢 QR Section Hidden by Default */
+        #qrSection { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
@@ -19,28 +28,35 @@
         <p>Paying <strong>{{ shop_name }}</strong></p>
         <h1 style="color: #10b981;">₹{{ amount }}</h1>
         
-        <p>Opening your payment app...</p>
-        <a id="payBtn" href="#" class="btn">Pay Now</a>
+        <p>Click below to pay using any UPI App.</p>
+        
+        <button id="payBtn" onclick="handlePayment()" class="btn">
+            Pay Now
+        </button>
+
+        <div id="qrSection">
+            <p style="font-size: 14px; margin-bottom: 10px; color: #dc2626;">
+                App didn't open? Scan this QR code:
+            </p>
+            <img src="data:image/png;base64,{{ qr_image }}" alt="Payment QR" style="width: 200px; border: 1px solid #ddd; border-radius: 10px; padding: 10px;">
+        </div>
     </div>
 
     <script>
-        // --- ⚙️ CONFIGURATION ⚙️ ---
-        // TODO: In the future, you can add a 'upi_id' field to your Shop model
-        const myUPI = "krishpatel2136@oksbi";  // <--- REPLACE THIS WITH YOUR REAL UPI ID
-        
-        // Dynamic Data from Django
-        const myName = "{{ shop_name }}"; 
-        const amount = "{{ amount }}"; 
+        // 🟢 Logic: Try to open App, Show QR as backup
+        function handlePayment() {
+            const upiLink = "{{ upi_link }}"; // Get from Django
 
-        if (amount && amount > 0) {
-            // Construct UPI Link
-            const upiLink = `upi://pay?pa=${myUPI}&pn=${myName}&am=${amount}&cu=INR&tn=ShopBill`;
-
-            // Set button and Redirect
-            document.getElementById("payBtn").href = upiLink;
+            // 1. Try to open the app
             window.location.href = upiLink;
-        } else {
-            document.body.innerHTML = "<h3>Error: Invalid Amount</h3>";
+
+            // 2. Immediately show the QR code
+            // If the user has the app, they leave this page so they won't even notice the QR.
+            // If they DON'T have the app, they stay here and the QR appears for them.
+            document.getElementById("qrSection").style.display = "block";
+            
+            // Optional: Change text to guide them
+            document.querySelector("p").innerText = "Processing...";
         }
     </script>
 
