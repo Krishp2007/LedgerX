@@ -51,6 +51,7 @@ def product_add(request):
         category = request.POST.get('category')
         price = request.POST.get('default_price')
         stock = request.POST.get('stock_quantity')
+        image = request.FILES.get('image')
 
         # Basic validation
         if not name or not price or not stock:
@@ -63,7 +64,8 @@ def product_add(request):
             name=name,
             category=category,
             default_price=price,
-            stock_quantity=stock
+            stock_quantity=stock,
+            image=image
         )
 
         messages.success(request, 'Product added successfully')
