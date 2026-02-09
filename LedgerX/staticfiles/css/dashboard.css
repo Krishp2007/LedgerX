@@ -1,0 +1,92 @@
+/* Ensure variables are available */
+:root {
+    --primary-emerald: #10b981;
+    --dark-emerald: #059669;
+}
+
+/* Custom Text Colors */
+.text-emerald { color: var(--primary-emerald) !important; }
+.border-emerald { border-color: var(--primary-emerald) !important; }
+.bg-emerald-subtle { background-color: rgba(16, 185, 129, 0.1) !important; }
+
+/* Stat Card Animations */
+.stat-card {
+    position: relative;
+    transition: all 0.35s cubic-bezier(.25,.8,.25,1);
+    cursor: pointer;
+    overflow: hidden;
+    background: #fff;
+    border-radius: 12px;
+}
+
+/* lift + shadow */
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* glowing accent line effect */
+.stat-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(16, 185, 129, 0.1),
+        transparent
+    );
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+/* animate numbers */
+.stat-card h3 {
+    transition: transform 0.3s ease, letter-spacing 0.3s ease;
+}
+
+.stat-card:hover h3 {
+    transform: scale(1.05);
+    letter-spacing: 0.5px;
+}
+
+/* Mobile tap feedback */
+.stat-card:active {
+    transform: scale(0.98);
+}
+
+/* ===== VALUE PULSE ANIMATION ===== */
+.stat-value.pulse {
+    animation: pulse 0.8s ease;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* ===== GLOW LOGIC (for JS updates) ===== */
+.glow-green { box-shadow: 0 0 20px rgba(16,185,129,0.3) !important; }
+.glow-red { box-shadow: 0 0 20px rgba(239,68,68,0.3) !important; }
+.glow-neutral { box-shadow: 0 0 20px rgba(59,130,246,0.2) !important; }
+
+/* ===== HOVER UP CARDS ===== */
+.hover-up { 
+    transition: 0.3s cubic-bezier(.25,.8,.25,1); 
+    border: 1px solid rgba(0,0,0,0.05) !important; 
+    border-radius: 12px;
+}
+.hover-up:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.08); 
+    border-color: var(--primary-emerald) !important; 
+}
+
+.x-small { font-size: 0.75rem; }
+.tracking-wider { letter-spacing: 0.05em; }

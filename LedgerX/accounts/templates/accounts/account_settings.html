@@ -75,6 +75,18 @@
               </p>
             </div>
             <div class="col-12">
+              <small class="text-muted fw-bold d-block x-small tracking-wider mb-1">
+                UPI ID
+              </small>
+              <p class="fw-bold text-dark fs-6 mb-0 font-monospace">
+                {% if request.user.shop.upi_id %}
+                  {{ request.user.shop.upi_id }}
+                {% else %}
+                  <span class="text-muted fw-normal fst-italic">Not set</span>
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-12">
               <small
                 class="text-muted fw-bold d-block x-small tracking-wider mb-1"
                 >OWNER NAME</small
@@ -210,7 +222,7 @@
               data-bs-target="#recoveryStep1Modal"
               class="btn btn-outline-dark fw-bold btn-sm px-4 py-2 rounded-pill"
             >
-              Email Reset
+              Reset Password
             </button>
           </div>
 
@@ -294,29 +306,45 @@
                         <label class="form-label small fw-bold text-muted">SHOP NAME</label>
                         <input type="text" name="shop_name" class="form-control" value="{{ request.user.shop.shop_name }}" required>
                     </div>
+
                     <div class="mb-3">
                         <label class="form-label small fw-bold text-muted">OWNER NAME</label>
                         <input type="text" name="owner_name" class="form-control" value="{{ request.user.shop.owner_name }}" required>
                     </div>
-                    <div class="mb-3">
-    <label class="form-label small fw-bold text-muted">USERNAME</label>
-    
-    <input type="text" 
-           name="username" 
-           id="id_username" 
-           class="form-control" 
-           value="{{ request.user.username }}" 
-           onkeyup="checkUsername()" 
-           required>
-           
-    <div id="usernameError" class="text-danger small fw-bold mt-1 d-none">
-        <i class="me-1">⚠️</i> This username is already taken.
-    </div>
-</div>
 
-<button type="submit" id="saveProfileBtn" class="btn btn-primary w-100 py-3 fw-bold rounded-3 mt-2">
-    Save Changes
-</button>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">UPI ID (FOR PAYMENTS)</label>
+                        <div class="input-group">
+                            <input type="text" name="upi_id" class="form-control" 
+                                   value="{{ request.user.shop.upi_id|default:'' }}" 
+                                   placeholder="e.g. rahul@oksbi">
+                        </div>
+                        <div class="form-text text-muted" style="font-size: 11px;">
+                            This ID will be used to generate payment QR codes for your customers.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">USERNAME</label>
+                        
+                        <input type="text" 
+                               name="username" 
+                               id="id_username" 
+                               class="form-control" 
+                               value="{{ request.user.username }}" 
+                               onkeyup="checkUsername()" 
+                               required>
+                               
+                        <div id="usernameError" class="text-danger small fw-bold mt-1 d-none">
+                            <i class="me-1">⚠️</i> This username is already taken.
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <button type="submit" id="saveProfileBtn" class="btn btn-primary fw-bold py-2">
+                            Save Changes
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

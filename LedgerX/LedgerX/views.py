@@ -90,3 +90,4 @@ LedgerX Support Team
             {"success": False, "error": "Something went wrong. Please try again later."},
             status=500
         )
+

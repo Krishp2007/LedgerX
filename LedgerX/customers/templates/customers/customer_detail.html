@@ -251,31 +251,44 @@
 
 
     function sendWhatsAppReminder() {
-        // 1. Get Customer Details
+        // 1. Get Details
         const phone = "{{ customer.mobile }}";
-        const name = "{{ customer.name }}";
-        const amount = "{{ outstanding }}";
-        const shopName = "{{ customer.shop.shop_name }}";
-
-        // 2. Generate Absolute URLs (Works on Localhost & Production)
-        // This grabs the current domain (e.g., 192.168.1.5:8000 or ledgerx.com) automatically.
+        const name = "{{ customer.name|escapejs }}";
         
-        // Ledger History Link
+        // Force 2 decimal places (e.g. "500.00") so the link is valid
+        const amount = "{{ outstanding|floatformat:2 }}"; 
+        
+        // Shop Name = For the Message Text ("Reminder from Chintu Sweets")
+        const shopNameRaw = "{{ customer.shop.shop_name|escapejs }}";
+        
+        // Owner Name = For the Payment Page Title ("Paying Krish Patel")
+        const ownerNameRaw = "{{ customer.shop.owner_name|escapejs }}";
+
+        // 2. Start building the Message
+        let message = `Hello ${name}! 👋\n\n` +
+                      `This is a payment reminder from *${shopNameRaw}*.\n` +
+                      `Your total outstanding balance is: *₹${amount}*\n\n`;
+
+        // 🟢 3. CONDITION: Only add Payment Link if UPI ID is actually set
+        // Since you changed default to "", this check works perfectly now.
+        {% if customer.shop.upi_id %}
+            
+            const ownerNameEncoded = encodeURIComponent(ownerNameRaw);
+            const payUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'payment_bridge' %}?amt=" + amount + "&name=" + ownerNameEncoded + "&cid={{ customer.id }}";
+
+            // Append Pay Link to message
+            message += `💳 *Pay Now:* \n${payUrl}\n\n`;
+
+        {% endif %}
+
+        // 4. Always add History Link
         const ledgerUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'customer_ledger_qr' qr_token.secure_token %}";
-        
-        // Payment Link (Passes amount and shop name)
-        const payUrl = "{{ request.scheme }}://{{ request.get_host }}{% url 'payment_bridge' %}?amt=" + amount + "&name=" + encodeURIComponent(shopName);
+        message += `📜 *View History:* \n${ledgerUrl}`;
 
-        // 3. Construct Message
-        const message = `Hello ${name}! 👋\n\n` +
-                        `This is a payment reminder from *${shopName}*.\n` +
-                        `Your total outstanding balance is: *₹${amount}*\n\n` +
-                        `💳 *Pay Now:* \n${payUrl}\n\n` +
-                        `📜 *View History:* \n${ledgerUrl}`;
-
-        // 4. Open WhatsApp
+        // 5. Open WhatsApp
         const waUrl = `https://wa.me/91${phone}?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
     }
+
 </script>
 {% endblock %}

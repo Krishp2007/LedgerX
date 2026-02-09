@@ -39,6 +39,7 @@ DEBUG = os.getenv("DEBUG", "False") == "True"
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
+    '10.23.126.126',
     ".onrender.com",  # 👈 your Render.com app
 ]
 

@@ -22,9 +22,13 @@ class Shop(models.Model):
     # 📸 NEW FIELD FOR IMAGE
     profile_pic = models.ImageField(upload_to='shop_profiles/', blank=True, null=True)
 
-    # Shop lifecycle
-    # is_active = models.BooleanField(default=True)  
-    # False = shop deactivated or deleted
+    # 🟢 NEW FIELD: Store unique UPI ID for this shop
+    upi_id = models.CharField(
+        max_length=50, 
+        default="",       # 🟢 Change this to empty string
+        blank=True,       # 🟢 Allows the field to be left empty in forms
+        help_text="Your UPI ID (e.g., rahul@oksbi)"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 

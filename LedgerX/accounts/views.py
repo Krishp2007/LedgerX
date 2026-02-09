@@ -419,10 +419,16 @@ def account_settings(request):
             new_username = request.POST.get('username')
             new_profile_pic = request.FILES.get('profile_pic')
 
+            # 🟢 Capture UPI ID
+            new_upi_id = request.POST.get('upi_id')
+
             # Update Shop
             if new_shop_name: shop.shop_name = new_shop_name
             if new_owner_name: shop.owner_name = new_owner_name
             if new_profile_pic: shop.profile_pic = new_profile_pic
+            # 🟢 Save UPI ID
+            if new_upi_id is not None:
+                shop.upi_id = new_upi_id
             
             # Update Username (Unique Check)
             if new_username and new_username != user.username:

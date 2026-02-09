@@ -117,30 +117,69 @@ def qr_transaction_detail(request, secure_token, transaction_id):
 
 import base64
 from io import BytesIO
+import urllib.parse
 from django.shortcuts import render
+from customers.models import Customer
 
 def payment_bridge_view(request):
     """
-    Renders the Payment Page with a generated QR Code.
+    Renders the Payment Page.
+    - Uses 'Shop Name' for visual display on the HTML page.
+    - Uses 'Owner Name' for the UPI Link (to match Bank Records).
     """
-    amount = request.GET.get('amt', 0)
-    shop_name = request.GET.get('name', 'Shop')
+    # 1. Get Parameters
+    amount_raw = request.GET.get('amt', '0')
+    customer_id = request.GET.get('cid') 
     
-    # 🟢 1. Configuration (Use the ID you provided)
-    my_upi = "krishpatel2136@oksbi" 
+    # Defaults
+    shop_upi_id = "example@upi"
+    display_name = request.GET.get('name', 'Shop') # Visual Name
+    banking_name = "Shop Owner"                    # Bank Name
 
-    # 🟢 2. Construct UPI Link
-    upi_link = f"upi://pay?pa={my_upi}&pn={shop_name}&am={amount}&cu=INR&tn=ShopBill"
+    if customer_id:
+        customer = get_object_or_404(Customer, id=customer_id)
+        shop = customer.shop
+        
+        # 🟢 1. Visual Name (e.g. "Chintu Sweets")
+        display_name = shop.shop_name 
+        
+        # 🟢 2. Banking Name (e.g. "Krish Patel") - Matches Bank Account
+        banking_name = shop.owner_name 
 
-    # 🟢 3. Generate QR Code Image (Server Side)
+        if shop.upi_id:
+            shop_upi_id = shop.upi_id
+
+    # 3. Strict Amount Formatting ("500" -> "500.00")
+    try:
+        amount_formatted = "{:.2f}".format(float(amount_raw))
+    except ValueError:
+        amount_formatted = "0.00"
+
+    # 4. URL Encoding
+    # We encode the OWNER NAME for the UPI link because that matches the bank.
+    banking_name_encoded = urllib.parse.quote(banking_name)
+    note_encoded = urllib.parse.quote("Shop Bill")
+
+    # 5. Construct UPI Link
+    # pa = UPI ID
+    # pn = Owner Name (Best chance of matching bank record)
+    # am = Strict Amount
+    upi_link = f"upi://pay?pa={shop_upi_id}&pn={banking_name_encoded}&am={amount_formatted}&cu=INR&tn={note_encoded}"
+
+    # 6. Generate QR Code
     qr = qrcode.make(upi_link)
     buffer = BytesIO()
     qr.save(buffer, format="PNG")
     img_str = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
-    return render(request, 'qr/payment_bridge.html', {
-        'amount': amount,
-        'shop_name': shop_name,
-        'upi_link': upi_link,  # Pass link to template
-        'qr_image': img_str    # Pass QR image to template
-    })
+    context = {
+        'amount': amount_raw,
+        'shop_name': display_name,  # Shows "Chintu Sweets" on the website
+        'upi_link': upi_link,       # Sends "Krish Patel" to the App
+        'qr_image': img_str
+    }
+    
+    if customer_id:
+         context['customer'] = customer
+
+    return render(request, 'qr/payment_bridge.html', context)
