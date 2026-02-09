@@ -1,0 +1,42 @@
+:root {
+  --primary-emerald: #10b981;
+  --dark-emerald: #059669;
+  --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --charcoal-900: #1a1a1a;
+  --charcoal-light: #333333;
+}
+body {
+  font-family: "Inter", sans-serif;
+  background-color: #ffffff;
+  color: var(--charcoal-900);
+  overflow-x: hidden;
+}
+.navbar {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.btn-primary {
+  background: var(--primary-gradient) !important;
+  border: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  border-radius: 50px;
+  font-weight: 600;
+  padding: 10px 24px;
+  transition: 0.3s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.35);
+}
+.gradient-text {
+  background: var(--primary-gradient);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: bold;
+}
+.card {
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}

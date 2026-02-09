@@ -8,6 +8,8 @@ __pycache__/
 *.so
 
 media/
+staticfiles/
+
 data.json
 
 # Distribution / packaging
@@ -65,7 +67,6 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-staticfiles/
 
 # Flask stuff:
 instance/
