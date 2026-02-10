@@ -1,4 +1,4 @@
-#LedgerX - Smart Digital Credit Ledger
+# LedgerX - Smart Digital Credit Ledger
 
 LedgerX is a smart digital credit ledger designed for local shops to manage customers, track sales, and monitor credit transactions efficiently. It features automated reporting, QR code integrations, and offline recovery capabilities.
 
